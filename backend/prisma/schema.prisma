@@ -1,0 +1,136 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           BigInt   @id @default(autoincrement())
+  publicId     String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  email        String   @unique @db.VarChar(320)
+  passwordHash String   @map("password_hash") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  profile        UserProfile?
+  symptomEntries SymptomEntry[]
+  aiSummaries    AiSummary[]
+
+  @@index([createdAt], map: "idx_users_created_at")
+  @@map("users")
+}
+
+model UserProfile {
+  id          BigInt   @id @default(autoincrement())
+  publicId    String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  userId      BigInt   @unique @map("user_id")
+  name        String   @db.VarChar(160)
+  bio         String?  @db.Text
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+  sex         String?  @db.VarChar(40)
+  phone       String?  @db.VarChar(32)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt], map: "idx_user_profiles_created_at")
+  @@map("user_profiles")
+}
+
+model SymptomEntry {
+  id        BigInt   @id @default(autoincrement())
+  publicId  String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  userId    BigInt   @map("user_id")
+  severity  Int      @db.SmallInt
+  mood      String?  @db.VarChar(80)
+  notes     String?  @db.Text
+  loggedAt  DateTime @map("logged_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user     User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  symptoms EntrySymptom[]
+  triggers EntryTrigger[]
+
+  @@index([userId, loggedAt(sort: Desc)], map: "idx_symptom_entries_user_logged_at")
+  @@index([createdAt], map: "idx_symptom_entries_created_at")
+  @@map("symptom_entries")
+}
+
+model Symptom {
+  id        BigInt   @id @default(autoincrement())
+  publicId  String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  name      String   @db.VarChar(120)
+  category  String   @db.VarChar(120)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  entries EntrySymptom[]
+
+  @@unique([name, category], map: "uq_symptoms_name_category")
+  @@index([category], map: "idx_symptoms_category")
+  @@index([createdAt], map: "idx_symptoms_created_at")
+  @@map("symptoms")
+}
+
+model EntrySymptom {
+  entryId   BigInt   @map("entry_id")
+  symptomId BigInt   @map("symptom_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  entry   SymptomEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  symptom Symptom      @relation(fields: [symptomId], references: [id], onDelete: Restrict)
+
+  @@id([entryId, symptomId])
+  @@index([symptomId], map: "idx_entry_symptoms_symptom_id")
+  @@index([createdAt], map: "idx_entry_symptoms_created_at")
+  @@map("entry_symptoms")
+}
+
+model Trigger {
+  id        BigInt   @id @default(autoincrement())
+  publicId  String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  name      String   @unique @db.VarChar(120)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  entries EntryTrigger[]
+
+  @@index([createdAt], map: "idx_triggers_created_at")
+  @@map("triggers")
+}
+
+model EntryTrigger {
+  entryId   BigInt   @map("entry_id")
+  triggerId BigInt   @map("trigger_id")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  entry   SymptomEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  trigger Trigger      @relation(fields: [triggerId], references: [id], onDelete: Restrict)
+
+  @@id([entryId, triggerId])
+  @@index([triggerId], map: "idx_entry_triggers_trigger_id")
+  @@index([createdAt], map: "idx_entry_triggers_created_at")
+  @@map("entry_triggers")
+}
+
+model AiSummary {
+  id          BigInt   @id @default(autoincrement())
+  publicId    String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  userId      BigInt   @map("user_id")
+  summaryType String   @map("summary_type") @db.VarChar(80)
+  content     String   @db.Text
+  generatedAt DateTime @default(now()) @map("generated_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, generatedAt(sort: Desc)], map: "idx_ai_summaries_user_generated_at")
+  @@index([summaryType], map: "idx_ai_summaries_summary_type")
+  @@index([createdAt], map: "idx_ai_summaries_created_at")
+  @@map("ai_summaries")
+}
