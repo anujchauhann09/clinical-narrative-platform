@@ -1,7 +1,8 @@
 import { ZodError } from 'zod';
+import { Prisma } from '@prisma/client';
 
 import { HTTP_STATUS } from '../constants/httpStatus.js';
-import { ApiError, ValidationError } from '../errors/index.js';
+import { ApiError, DatabaseError, ValidationError } from '../errors/index.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { logger } from '../utils/logger.js';
 
@@ -16,6 +17,13 @@ const normalizeError = (error) => {
         message: issue.message,
       })),
     );
+  }
+
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError ||
+    error instanceof Prisma.PrismaClientValidationError
+  ) {
+    return new DatabaseError('Database operation failed');
   }
 
   return new ApiError('Internal server error', HTTP_STATUS.INTERNAL_SERVER_ERROR);

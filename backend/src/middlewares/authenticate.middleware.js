@@ -19,6 +19,10 @@ export const authenticate = (req, _res, next) => {
     return;
   }
 
-  req.auth = tokenService.verifyAccessToken(token);
-  next();
+  try {
+    req.auth = tokenService.verifyAccessToken(token);
+    next();
+  } catch (error) {
+    next(error);
+  }
 };

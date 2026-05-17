@@ -1,10 +1,16 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+enum RoleName {
+  PATIENT @map("patient")
+  ADMIN   @map("admin")
+
+  @@map("role_name")
 }
 
 model User {
@@ -12,15 +18,51 @@ model User {
   publicId     String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
   email        String   @unique @db.VarChar(320)
   passwordHash String   @map("password_hash") @db.Text
+  roleName     RoleName @default(PATIENT) @map("role_name")
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   profile        UserProfile?
   symptomEntries SymptomEntry[]
   aiSummaries    AiSummary[]
+  refreshTokens  RefreshToken[]
+  role           Role           @relation(fields: [roleName], references: [name], onDelete: Restrict)
 
+  @@index([roleName], map: "idx_users_role_name")
   @@index([createdAt], map: "idx_users_created_at")
   @@map("users")
+}
+
+model Role {
+  id          BigInt   @id @default(autoincrement())
+  publicId    String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  name        RoleName @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  users User[]
+
+  @@index([createdAt], map: "idx_roles_created_at")
+  @@map("roles")
+}
+
+model RefreshToken {
+  id        BigInt    @id @default(autoincrement())
+  publicId  String    @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  userId    BigInt    @map("user_id")
+  tokenHash String    @unique @map("token_hash") @db.Text
+  expiresAt DateTime  @map("expires_at") @db.Timestamptz(6)
+  revokedAt DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, revokedAt], map: "idx_refresh_tokens_user_revoked_at")
+  @@index([expiresAt], map: "idx_refresh_tokens_expires_at")
+  @@index([createdAt], map: "idx_refresh_tokens_created_at")
+  @@map("refresh_tokens")
 }
 
 model UserProfile {

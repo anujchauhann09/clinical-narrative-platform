@@ -1,13 +1,43 @@
+-- CreateEnum
+CREATE TYPE "role_name" AS ENUM ('patient', 'admin');
+
 -- CreateTable
 CREATE TABLE "users" (
     "id" BIGSERIAL NOT NULL,
     "public_id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "email" VARCHAR(320) NOT NULL,
     "password_hash" TEXT NOT NULL,
+    "role_name" "role_name" NOT NULL DEFAULT 'patient',
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMPTZ(6) NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "roles" (
+    "id" BIGSERIAL NOT NULL,
+    "public_id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "name" "role_name" NOT NULL,
+    "description" TEXT,
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "roles_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "refresh_tokens" (
+    "id" BIGSERIAL NOT NULL,
+    "public_id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" BIGINT NOT NULL,
+    "token_hash" TEXT NOT NULL,
+    "expires_at" TIMESTAMPTZ(6) NOT NULL,
+    "revoked_at" TIMESTAMPTZ(6),
+    "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL,
+
+    CONSTRAINT "refresh_tokens_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -102,7 +132,34 @@ CREATE UNIQUE INDEX "users_public_id_key" ON "users"("public_id");
 CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 
 -- CreateIndex
+CREATE INDEX "idx_users_role_name" ON "users"("role_name");
+
+-- CreateIndex
 CREATE INDEX "idx_users_created_at" ON "users"("created_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "roles_public_id_key" ON "roles"("public_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "roles_name_key" ON "roles"("name");
+
+-- CreateIndex
+CREATE INDEX "idx_roles_created_at" ON "roles"("created_at");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "refresh_tokens_public_id_key" ON "refresh_tokens"("public_id");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "refresh_tokens_token_hash_key" ON "refresh_tokens"("token_hash");
+
+-- CreateIndex
+CREATE INDEX "idx_refresh_tokens_user_revoked_at" ON "refresh_tokens"("user_id", "revoked_at");
+
+-- CreateIndex
+CREATE INDEX "idx_refresh_tokens_expires_at" ON "refresh_tokens"("expires_at");
+
+-- CreateIndex
+CREATE INDEX "idx_refresh_tokens_created_at" ON "refresh_tokens"("created_at");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "user_profiles_public_id_key" ON "user_profiles"("public_id");
@@ -166,6 +223,12 @@ CREATE INDEX "idx_ai_summaries_summary_type" ON "ai_summaries"("summary_type");
 
 -- CreateIndex
 CREATE INDEX "idx_ai_summaries_created_at" ON "ai_summaries"("created_at");
+
+-- AddForeignKey
+ALTER TABLE "users" ADD CONSTRAINT "users_role_name_fkey" FOREIGN KEY ("role_name") REFERENCES "roles"("name") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "refresh_tokens" ADD CONSTRAINT "refresh_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "user_profiles" ADD CONSTRAINT "user_profiles_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -1,3 +1,4 @@
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
 import { env } from '../config/env.js';
@@ -19,7 +20,14 @@ const prismaClientOptions =
         ],
       };
 
-export const prisma = new PrismaClient(prismaClientOptions);
+const adapter = new PrismaPg({
+  connectionString: env.DATABASE_URL,
+});
+
+export const prisma = new PrismaClient({
+  adapter,
+  ...prismaClientOptions,
+});
 
 prisma.$on('error', (event) => {
   logger.error({ target: event.target, message: event.message }, 'Prisma error');
