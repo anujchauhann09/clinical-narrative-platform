@@ -4,6 +4,11 @@ export const API_TIMEOUT_MS = 15_000;
 
 export const ROUTES = Object.freeze({
   HOME: '/',
+  ABOUT: '/about',
+  PRIVACY: '/privacy',
+  DASHBOARD: '/dashboard',
+  LOGIN: '/login',
+  SIGNUP: '/signup',
   TIMELINE: '/timeline',
   INSIGHTS: '/insights',
   PROFILE: '/profile',

@@ -1,8 +1,8 @@
 import { apiClient } from './apiClient.js';
 
 export const authApi = {
-  register(payload) {
-    return apiClient.post('/auth/register', payload);
+  signup(payload) {
+    return apiClient.post('/auth/signup', payload);
   },
 
   login(payload) {
@@ -15,5 +15,9 @@ export const authApi = {
 
   logout() {
     return apiClient.post('/auth/logout');
+  },
+
+  getMe() {
+    return apiClient.get('/auth/me');
   },
 };
