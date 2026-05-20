@@ -11,5 +11,6 @@ export const ROUTES = Object.freeze({
   SIGNUP: '/signup',
   TIMELINE: '/timeline',
   INSIGHTS: '/insights',
+  NARRATIVES: '/narratives',
   PROFILE: '/profile',
 });
