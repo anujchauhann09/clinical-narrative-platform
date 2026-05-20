@@ -8,6 +8,7 @@ import {
   serializeSymptomEntry,
   serializeTrigger,
 } from '../utils/symptomEntrySerializer.js';
+import { decodeTimelineCursor, encodeTimelineCursor } from '../utils/timelineCursor.js';
 
 const resolvePublicIds = async ({ repository, publicIds, label }) => {
   if (!publicIds || publicIds.length === 0) return [];
@@ -43,6 +44,17 @@ const startOfCurrentMonthUtc = () => {
 };
 
 const formatAverage = (value) => (value ? Number(value.toFixed(1)) : 0);
+
+const buildTimelineFilters = (query) => ({
+  from: query.from ? new Date(query.from) : undefined,
+  to: query.to ? new Date(query.to) : undefined,
+  severityMin: query.severityMin,
+  severityMax: query.severityMax,
+  mood: query.mood,
+  search: query.search,
+  symptomIds: query.symptomIds,
+  triggerIds: query.triggerIds,
+});
 
 export const symptomEntryService = {
   async listSymptoms() {
@@ -81,26 +93,23 @@ export const symptomEntryService = {
   },
 
   async listEntries(userPublicId, query) {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
+    const cursorId = query.cursor ? decodeTimelineCursor(query.cursor) : undefined;
+    const pageSize = query.pageSize;
 
-    const [entries, total] = await symptomEntryRepository.listForUser({
+    const entries = await symptomEntryRepository.listForUser({
       userPublicId,
-      page,
       pageSize,
-      from: query.from ? new Date(query.from) : undefined,
-      to: query.to ? new Date(query.to) : undefined,
+      cursorId,
+      sortBy: query.sortBy,
+      sortOrder: query.sortOrder,
+      filters: buildTimelineFilters(query),
     });
 
-    return {
-      items: entries.map(serializeSymptomEntry),
-      meta: {
-        page,
-        pageSize,
-        total,
-        totalPages: Math.max(1, Math.ceil(total / pageSize)),
-      },
-    };
+    const items = entries.map(serializeSymptomEntry);
+    const nextCursor =
+      entries.length === pageSize ? encodeTimelineCursor(entries[entries.length - 1].id) : null;
+
+    return { items, nextCursor };
   },
 
   async getEntry(userPublicId, publicId) {

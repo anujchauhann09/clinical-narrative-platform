@@ -35,7 +35,7 @@ export const DashboardPage = () => {
 
   const refresh = useCallback(async () => {
     const [entriesResponse, summaryResponse] = await Promise.all([
-      symptomApi.listEntries({ page: 1, pageSize: 3 }),
+      symptomApi.listEntries({ pageSize: 3 }),
       symptomApi.getSummary(),
     ]);
     setRecentEntries(entriesResponse.data.entries);
@@ -50,7 +50,7 @@ export const DashboardPage = () => {
       try {
         const [entriesResponse, summaryResponse, symptomsResponse, triggersResponse] =
           await Promise.all([
-            symptomApi.listEntries({ page: 1, pageSize: 3 }),
+            symptomApi.listEntries({ pageSize: 3 }),
             symptomApi.getSummary(),
             symptomApi.listSymptoms(),
             symptomApi.listTriggers(),

@@ -14,6 +14,46 @@ const ownedEntryFilter = (userPublicId, extra = {}) => ({
   ...extra,
 });
 
+const buildListWhere = (userPublicId, filters = {}) => {
+  const where = ownedEntryFilter(userPublicId);
+
+  if (filters.from || filters.to) {
+    where.loggedAt = {
+      ...(filters.from ? { gte: filters.from } : {}),
+      ...(filters.to ? { lte: filters.to } : {}),
+    };
+  }
+
+  if (filters.severityMin !== undefined || filters.severityMax !== undefined) {
+    where.severity = {
+      ...(filters.severityMin !== undefined ? { gte: filters.severityMin } : {}),
+      ...(filters.severityMax !== undefined ? { lte: filters.severityMax } : {}),
+    };
+  }
+
+  if (filters.mood) {
+    where.mood = { contains: filters.mood, mode: 'insensitive' };
+  }
+
+  if (filters.search) {
+    where.notes = { contains: filters.search, mode: 'insensitive' };
+  }
+
+  if (filters.symptomIds?.length) {
+    where.symptoms = {
+      some: { symptom: { publicId: { in: filters.symptomIds } } },
+    };
+  }
+
+  if (filters.triggerIds?.length) {
+    where.triggers = {
+      some: { trigger: { publicId: { in: filters.triggerIds } } },
+    };
+  }
+
+  return where;
+};
+
 export const symptomEntryRepository = {
   create({ userPublicId, severity, mood, notes, loggedAt, symptomIds, triggerIds }) {
     return prisma.symptomEntry.create({
@@ -48,28 +88,17 @@ export const symptomEntryRepository = {
     });
   },
 
-  listForUser({ userPublicId, page, pageSize, from, to }) {
-    const where = ownedEntryFilter(userPublicId, {
-      ...(from || to
-        ? {
-            loggedAt: {
-              ...(from ? { gte: from } : {}),
-              ...(to ? { lte: to } : {}),
-            },
-          }
-        : {}),
-    });
+  listForUser({ userPublicId, pageSize, cursorId, sortBy, sortOrder, filters }) {
+    const where = buildListWhere(userPublicId, filters);
+    const orderBy = [{ [sortBy]: sortOrder }, { id: sortOrder }];
 
-    return prisma.$transaction([
-      prisma.symptomEntry.findMany({
-        where,
-        orderBy: { loggedAt: 'desc' },
-        skip: (page - 1) * pageSize,
-        take: pageSize,
-        include: defaultEntryInclude,
-      }),
-      prisma.symptomEntry.count({ where }),
-    ]);
+    return prisma.symptomEntry.findMany({
+      where,
+      orderBy,
+      take: pageSize,
+      ...(cursorId ? { cursor: { id: cursorId }, skip: 1 } : {}),
+      include: defaultEntryInclude,
+    });
   },
 
   countsForUser({ userPublicId, since }) {

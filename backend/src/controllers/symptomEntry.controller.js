@@ -37,13 +37,15 @@ export const createEntry = asyncHandler(async (req, res) => {
 });
 
 export const listEntries = asyncHandler(async (req, res) => {
-  const { items, meta } = await symptomEntryService.listEntries(req.auth.sub, req.validated.query);
+  const { items, nextCursor } = await symptomEntryService.listEntries(
+    req.auth.sub,
+    req.validated.query,
+  );
 
   res.status(HTTP_STATUS.OK).json(
     ApiResponse.success({
       message: 'Symptom entries fetched',
-      data: { entries: items },
-      meta,
+      data: { entries: items, nextCursor },
     }),
   );
 });

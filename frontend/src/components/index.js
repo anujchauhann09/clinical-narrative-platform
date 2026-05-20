@@ -6,4 +6,6 @@ export { Loader } from './Loader.jsx';
 export { Modal } from './Modal.jsx';
 export { SymptomEntryForm } from './SymptomEntryForm.jsx';
 export { TimelineCard } from './TimelineCard.jsx';
+export { TimelineFiltersModal } from './TimelineFiltersModal.jsx';
+export { TimelineGroup } from './TimelineGroup.jsx';
 export { Toast } from './Toast.jsx';

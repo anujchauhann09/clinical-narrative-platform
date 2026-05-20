@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 
 import { Button } from '../components/Button.jsx';
 import { ROUTES } from '../constants/app.js';
+import { useAuthStore } from '../store/authStore.js';
 
 export const LandingPage = () => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
   return (
     <div className="landing-page">
       <section className="hero">
@@ -18,9 +21,15 @@ export const LandingPage = () => {
               Transform fragmented medical data into a cohesive, chronological timeline. Empowering healthcare professionals with clear, actionable insights.
             </p>
             <div className="hero__actions">
-              <Button as={Link} to={ROUTES.SIGNUP} className="button--large button--primary">
-                Get Started <ArrowRight size={18} />
-              </Button>
+              {isAuthenticated ? (
+                <Button as={Link} to={ROUTES.DASHBOARD} className="button--large button--primary">
+                  Open Dashboard <ArrowRight size={18} />
+                </Button>
+              ) : (
+                <Button as={Link} to={ROUTES.SIGNUP} className="button--large button--primary">
+                  Get Started <ArrowRight size={18} />
+                </Button>
+              )}
               <Button as={Link} to={ROUTES.ABOUT} className="button--large button--secondary">
                 Learn More
               </Button>
