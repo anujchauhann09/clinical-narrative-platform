@@ -1,7 +1,7 @@
 import { apiClient } from './apiClient.js';
 
 export const symptomApi = {
-  getTimeline(params = {}) {
+  listEntries(params = {}) {
     return apiClient.get('/symptom-entries', { params });
   },
 
@@ -9,11 +9,27 @@ export const symptomApi = {
     return apiClient.post('/symptom-entries', payload);
   },
 
-  getSymptoms() {
+  updateEntry(publicId, payload) {
+    return apiClient.patch(`/symptom-entries/${publicId}`, payload);
+  },
+
+  deleteEntry(publicId) {
+    return apiClient.delete(`/symptom-entries/${publicId}`);
+  },
+
+  getEntry(publicId) {
+    return apiClient.get(`/symptom-entries/${publicId}`);
+  },
+
+  getSummary() {
+    return apiClient.get('/symptom-entries/summary');
+  },
+
+  listSymptoms() {
     return apiClient.get('/symptoms');
   },
 
-  getTriggers() {
+  listTriggers() {
     return apiClient.get('/triggers');
   },
 };
