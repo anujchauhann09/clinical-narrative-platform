@@ -25,3 +25,14 @@ export const aiGenerationRateLimiter = rateLimit({
     'AI generation rate limit reached. Please wait before generating another summary.',
   ),
 });
+
+export const pdfExportRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  keyGenerator: (req) => req.auth?.sub ?? ipKeyGenerator(req.ip),
+  handler: tooManyRequestsHandler(
+    'PDF export rate limit reached. Please wait before downloading another report.',
+  ),
+});

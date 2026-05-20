@@ -1,4 +1,4 @@
-import { Activity, Brain, CalendarDays, FileText, UserRound } from 'lucide-react';
+import { Activity, Brain, CalendarDays, FileDown, FileText, UserRound } from 'lucide-react';
 import { LogOut } from 'lucide-react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 
@@ -13,6 +13,7 @@ const navItems = [
   { to: ROUTES.TIMELINE, label: 'Timeline', icon: CalendarDays },
   { to: ROUTES.INSIGHTS, label: 'Insights', icon: Brain },
   { to: ROUTES.NARRATIVES, label: 'Narratives', icon: FileText },
+  { to: ROUTES.REPORTS, label: 'Reports', icon: FileDown },
   { to: ROUTES.PROFILE, label: 'Profile', icon: UserRound },
 ];
 

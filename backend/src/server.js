@@ -1,5 +1,6 @@
 import { createApp } from './app.js';
 import { env } from './config/env.js';
+import { pdfClient } from './pdf/pdfClient.js';
 import { logger } from './utils/logger.js';
 
 const app = createApp();
@@ -18,7 +19,10 @@ server.on('error', (error) => {
 
 const shutdown = (signal) => {
   logger.info({ signal }, 'Shutting down API server');
-  server.close(() => {
+  server.close(async () => {
+    await pdfClient.close().catch((error) => {
+      logger.warn({ err: error }, 'pdfClient.close failed during shutdown');
+    });
     logger.info('API server stopped');
     process.exit(0);
   });

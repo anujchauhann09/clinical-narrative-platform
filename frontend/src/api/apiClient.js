@@ -54,13 +54,18 @@ apiClient.interceptors.response.use(
       useAuthStore.getState().clearSession();
     }
 
-    const message =
-      error.response?.data?.message ?? error.message ?? 'Something went wrong. Please try again.';
+    const responseData = error.response?.data;
+    const isBlobBody =
+      typeof Blob !== 'undefined' && responseData instanceof Blob;
+
+    const message = isBlobBody
+      ? error.message ?? 'Something went wrong. Please try again.'
+      : responseData?.message ?? error.message ?? 'Something went wrong. Please try again.';
 
     return Promise.reject({
       message,
       status: error.response?.status,
-      details: error.response?.data?.details ?? null,
+      details: isBlobBody ? responseData : responseData?.details ?? null,
     });
   },
 );

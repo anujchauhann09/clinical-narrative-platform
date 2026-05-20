@@ -12,5 +12,6 @@ export const ROUTES = Object.freeze({
   TIMELINE: '/timeline',
   INSIGHTS: '/insights',
   NARRATIVES: '/narratives',
+  REPORTS: '/reports',
   PROFILE: '/profile',
 });

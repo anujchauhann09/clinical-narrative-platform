@@ -7,6 +7,7 @@ import { DashboardPage } from '../pages/DashboardPage.jsx';
 import { InsightsPage } from '../pages/InsightsPage.jsx';
 import { LoginPage } from '../pages/LoginPage.jsx';
 import { NarrativesPage } from '../pages/NarrativesPage.jsx';
+import { ReportsPage } from '../pages/ReportsPage.jsx';
 import { NotFoundPage } from '../pages/NotFoundPage.jsx';
 import { ProfilePage } from '../pages/ProfilePage.jsx';
 import { SignupPage } from '../pages/SignupPage.jsx';
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.TIMELINE, element: <TimelinePage /> },
           { path: ROUTES.INSIGHTS, element: <InsightsPage /> },
           { path: ROUTES.NARRATIVES, element: <NarrativesPage /> },
+          { path: ROUTES.REPORTS, element: <ReportsPage /> },
           { path: ROUTES.PROFILE, element: <ProfilePage /> },
         ],
       },

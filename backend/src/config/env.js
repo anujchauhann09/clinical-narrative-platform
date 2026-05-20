@@ -13,6 +13,7 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGINS: z.string().min(1).default('http://localhost:5173,http://127.0.0.1:5173'),
   GEMINI_API_KEY: z.string().min(1),
+  CHROME_EXECUTABLE_PATH: z.string().min(1).default('/usr/bin/google-chrome'),
   UPLOAD_DIR: z.string().min(1).default('uploads'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
