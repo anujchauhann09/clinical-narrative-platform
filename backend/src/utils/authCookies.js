@@ -2,16 +2,15 @@ import { COOKIE_NAMES } from '../constants/cookies.js';
 import { env } from '../config/env.js';
 
 
-const cookiePolicy = (req, path, maxAge) => {
-  const overHttps = Boolean(req?.secure);
-  return {
-    httpOnly: true,
-    secure: overHttps,
-    sameSite: overHttps ? 'none' : 'strict',
-    path,
-    maxAge,
-  };
-};
+const isProduction = env.NODE_ENV === 'production';
+
+const cookiePolicy = (_req, path, maxAge) => ({
+  httpOnly: true,
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax',
+  path,
+  maxAge,
+});
 
 const accessCookiePath = env.API_PREFIX;
 const refreshCookiePath = `${env.API_PREFIX}/auth`;
