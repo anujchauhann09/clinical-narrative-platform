@@ -1,22 +1,19 @@
 import { COOKIE_NAMES } from '../constants/cookies.js';
 import { env } from '../config/env.js';
 
+
+const isProd = env.NODE_ENV === 'production';
+
 const baseCookieOptions = (path, maxAge) => ({
   httpOnly: true,
-  secure: env.NODE_ENV === 'production',
-  sameSite: 'strict',
+  secure: isProd,
+  sameSite: isProd ? 'none' : 'strict',
   path,
   maxAge,
 });
 
 const accessCookiePath = env.API_PREFIX;
 const refreshCookiePath = `${env.API_PREFIX}/auth`;
-// CSRF cookie must be readable by frontend JS on every page route — not just
-// pages under /api/v1 — because the frontend lives at /, /dashboard, /profile,
-// etc. and reads document.cookie to mirror the value into the X-CSRF-Token
-// header. The browser only exposes cookies whose `path` prefixes the current
-// page URL, so this one has to be `/`. It's still SameSite=Strict + Secure-in-
-// prod, so a third-party page can't read it cross-site.
 const csrfCookiePath = '/';
 
 export const setAccessTokenCookie = (res, accessToken, maxAge) => {
@@ -31,8 +28,7 @@ export const setRefreshTokenCookie = (res, refreshToken, maxAge) => {
   );
 };
 
-// CSRF cookie is intentionally NOT HttpOnly: the frontend JS reads it and
-// echoes it into an X-CSRF-Token header (double-submit cookie pattern).
+
 export const setCsrfTokenCookie = (res, token, maxAge) => {
   res.cookie(COOKIE_NAMES.CSRF_TOKEN, token, {
     ...baseCookieOptions(csrfCookiePath, maxAge),
