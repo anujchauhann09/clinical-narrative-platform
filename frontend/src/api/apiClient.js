@@ -3,68 +3,69 @@ import axios from 'axios';
 import { API_TIMEOUT_MS } from '../constants/app.js';
 import { useAuthStore } from '../store/authStore.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://127.0.0.1:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
+
+// Auth endpoints that should NOT trigger an automatic refresh on 401.
+//   - login / signup: 401 means bad credentials, not an expired session.
+//   - refresh: would recurse and mask the real reason the refresh failed.
+//   - logout: 401 is irrelevant; we're tearing the session down anyway.
+const REFRESH_SKIP_PREFIXES = ['/auth/login', '/auth/signup', '/auth/refresh', '/auth/logout'];
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT_MS,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
 });
 
-let refreshRequest = null;
+// Single in-flight refresh. Concurrent 401s share the same network call.
+let refreshPromise = null;
 
-apiClient.interceptors.request.use((config) => {
-  const accessToken = useAuthStore.getState().accessToken;
-
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
-  }
-
-  return config;
-});
+const performRefresh = () => {
+  refreshPromise ??= axios
+    .post(`${API_BASE_URL}/auth/refresh`, null, { withCredentials: true })
+    .then((response) => {
+      const user = response.data?.data?.user;
+      if (user) useAuthStore.getState().setSession({ user });
+      return response.data;
+    })
+    .finally(() => {
+      refreshPromise = null;
+    });
+  return refreshPromise;
+};
 
 apiClient.interceptors.response.use(
   (response) => response.data,
   async (error) => {
     const originalRequest = error.config;
-    const isAuthEndpoint = originalRequest?.url?.startsWith('/auth/');
+    const url = originalRequest?.url ?? '';
+    const status = error.response?.status;
+    const skipRefresh = REFRESH_SKIP_PREFIXES.some((prefix) => url.startsWith(prefix));
 
-    if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthEndpoint) {
+    if (status === 401 && originalRequest && !originalRequest._retry && !skipRefresh) {
       originalRequest._retry = true;
 
-      refreshRequest ??= axios
-        .post(`${API_BASE_URL}/auth/refresh`, null, { withCredentials: true })
-        .then((response) => response.data)
-        .finally(() => {
-          refreshRequest = null;
-        });
-
-      const refreshResponse = await refreshRequest;
-      const { accessToken, user } = refreshResponse.data;
-      useAuthStore.getState().setSession({ accessToken, user });
-
-      originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-      return apiClient(originalRequest);
-    }
-
-    if (error.response?.status === 401 && originalRequest?.url === '/auth/refresh') {
-      useAuthStore.getState().clearSession();
+      try {
+        await performRefresh();
+        return apiClient(originalRequest);
+      } catch (_refreshError) {
+        // Refresh failed too: the session is unrecoverable. Wipe local state so
+        // ProtectedRoute redirects to login. The cookies are already cleared
+        // server-side by /auth/refresh on its 401 path.
+        useAuthStore.getState().clearSession();
+      }
     }
 
     const responseData = error.response?.data;
-    const isBlobBody =
-      typeof Blob !== 'undefined' && responseData instanceof Blob;
-
+    const isBlobBody = typeof Blob !== 'undefined' && responseData instanceof Blob;
     const message = isBlobBody
       ? error.message ?? 'Something went wrong. Please try again.'
       : responseData?.message ?? error.message ?? 'Something went wrong. Please try again.';
 
     return Promise.reject({
       message,
-      status: error.response?.status,
+      status,
       details: isBlobBody ? responseData : responseData?.details ?? null,
     });
   },

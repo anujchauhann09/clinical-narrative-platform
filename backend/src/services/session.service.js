@@ -11,6 +11,7 @@ export const sessionService = {
     const tokenPayload = buildAuthTokenPayload(user);
     const accessToken = tokenService.generateAccessToken(tokenPayload);
     const refreshToken = tokenService.generateRefreshToken(tokenPayload);
+    const accessTokenTtlMs = durationToMs(env.JWT_ACCESS_EXPIRES_IN);
     const refreshTokenTtlMs = durationToMs(env.JWT_REFRESH_EXPIRES_IN);
 
     await refreshTokenRepository.create({
@@ -23,6 +24,7 @@ export const sessionService = {
       user: serializeUser(user),
       accessToken,
       refreshToken,
+      accessTokenTtlMs,
       refreshTokenTtlMs,
     };
   },

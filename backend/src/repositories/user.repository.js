@@ -34,4 +34,20 @@ export const userRepository = {
       include: defaultUserInclude,
     });
   },
+
+  updateProfileByUserPublicId(publicId, data) {
+    return prisma.user.update({
+      where: { publicId },
+      data: {
+        profile: {
+          update: data,
+        },
+      },
+      include: defaultUserInclude,
+    });
+  },
+
+  deleteByPublicId(publicId) {
+    return prisma.user.delete({ where: { publicId } });
+  },
 };

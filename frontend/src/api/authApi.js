@@ -9,10 +9,6 @@ export const authApi = {
     return apiClient.post('/auth/login', payload);
   },
 
-  refreshToken() {
-    return apiClient.post('/auth/refresh');
-  },
-
   logout() {
     return apiClient.post('/auth/logout');
   },

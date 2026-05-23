@@ -1,55 +1,90 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { Sparkles, UserPlus } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 
-import { Button, Input } from '../components/index.js';
 import { authApi } from '../api/authApi.js';
+import { Button } from '../components/common/Button.jsx';
+import { Input } from '../components/common/Input.jsx';
 import { ROUTES } from '../constants/app.js';
-import { useAsyncAction } from '../hooks/useAsyncAction.js';
-import { useAuthStore } from '../store/authStore.js';
 import { signupSchema } from '../validators/auth.validator.js';
 
 export const SignupPage = () => {
   const navigate = useNavigate();
-  const [validationError, setValidationError] = useState(null);
-  const { execute, error, isLoading } = useAsyncAction(authApi.signup);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const {
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    setError,
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+    defaultValues: { name: '', email: '', password: '' },
+  });
 
-    const formData = new FormData(event.currentTarget);
-    const parsedPayload = signupSchema.safeParse({
-      name: formData.get('name'),
-      email: formData.get('email'),
-      password: formData.get('password'),
-    });
-
-    if (!parsedPayload.success) {
-      setValidationError(parsedPayload.error.issues[0]?.message ?? 'Please check your signup details');
-      return;
+  const onSubmit = async (values) => {
+    try {
+      await authApi.signup(values);
+      navigate(ROUTES.LOGIN, { state: { message: 'Account created. Sign in to begin tracking.' } });
+    } catch (error) {
+      setError('root', { message: error?.message ?? 'Sign up failed. Please try again.' });
     }
-
-    setValidationError(null);
-    const payload = parsedPayload.data;
-    await execute(payload);
-
-    navigate(ROUTES.LOGIN, { state: { message: 'Registration successful. Please log in.' } });
   };
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
-      <div>
-        <p className="eyebrow">Start your timeline</p>
-        <h1>Create account</h1>
+    <form className="flex flex-col gap-5" noValidate onSubmit={handleSubmit(onSubmit)}>
+      <header className="flex flex-col gap-1">
+        <p className="inline-flex items-center gap-1 text-2xs font-semibold uppercase tracking-[0.14em] text-primary">
+          <Sparkles aria-hidden="true" size={12} /> Start your timeline
+        </p>
+        <h1 className="m-0 text-2xl font-semibold tracking-tight text-text">Create your account</h1>
+        <p className="text-sm text-muted">
+          Log symptoms, generate AI-assisted narratives, and download clinician-ready reports.
+        </p>
+      </header>
+
+      <div className="flex flex-col gap-4">
+        <Input
+          autoComplete="name"
+          error={errors.name?.message}
+          label="Full name"
+          required
+          {...register('name')}
+        />
+        <Input
+          autoComplete="email"
+          error={errors.email?.message}
+          label="Email"
+          required
+          type="email"
+          {...register('email')}
+        />
+        <Input
+          autoComplete="new-password"
+          error={errors.password?.message}
+          hint="Use at least 8 characters."
+          label="Password"
+          required
+          type="password"
+          {...register('password')}
+        />
       </div>
-      <Input autoComplete="name" id="name" label="Name" name="name" />
-      <Input autoComplete="email" id="email" label="Email" name="email" type="email" />
-      <Input autoComplete="new-password" id="password" label="Password" name="password" type="password" />
-      {validationError || error ? (
-        <p className="form-error">{validationError ?? error.message}</p>
+
+      {errors.root ? (
+        <p className="text-sm font-medium text-danger" role="alert">
+          {errors.root.message}
+        </p>
       ) : null}
-      <Button isLoading={isLoading} type="submit">Create account</Button>
-      <p className="auth-switch">
-        Already have an account? <Link to={ROUTES.LOGIN}>Login</Link>
+
+      <Button icon={UserPlus} isLoading={isSubmitting} size="lg" type="submit">
+        Create account
+      </Button>
+
+      <p className="text-center text-sm text-muted">
+        Already have an account?{' '}
+        <Link className="font-medium text-primary hover:text-primary-strong" to={ROUTES.LOGIN}>
+          Sign in
+        </Link>
       </p>
     </form>
   );

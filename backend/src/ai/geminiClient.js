@@ -7,8 +7,8 @@ const DEFAULT_MODEL = 'gemini-2.5-flash';
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta';
 const REQUEST_TIMEOUT_MS = 30_000;
 
-const buildEndpoint = (model) =>
-  `${BASE_URL}/models/${encodeURIComponent(model)}:generateContent?key=${env.GEMINI_API_KEY}`;
+const buildEndpoint = (model, apiKey) =>
+  `${BASE_URL}/models/${encodeURIComponent(model)}:generateContent?key=${apiKey ?? env.GEMINI_API_KEY}`;
 
 const buildRequestBody = ({ systemInstruction, prompt, generationConfig, responseSchema }) => {
   const body = {
@@ -73,12 +73,12 @@ const extractText = (responsePayload) => {
 };
 
 export const geminiClient = {
-  async generate({ systemInstruction, prompt, generationConfig, responseSchema, model } = {}) {
+  async generate({ systemInstruction, prompt, generationConfig, responseSchema, model, apiKey } = {}) {
     if (!prompt || typeof prompt !== 'string') {
       throw new ApiError('Gemini prompt must be a non-empty string', HTTP_STATUS.BAD_REQUEST);
     }
 
-    const endpoint = buildEndpoint(model ?? DEFAULT_MODEL);
+    const endpoint = buildEndpoint(model ?? DEFAULT_MODEL, apiKey);
     const body = buildRequestBody({ systemInstruction, prompt, generationConfig, responseSchema });
 
     const controller = new AbortController();

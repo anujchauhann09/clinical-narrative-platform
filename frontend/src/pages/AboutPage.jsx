@@ -1,23 +1,28 @@
-export const AboutPage = () => {
-  return (
-    <div className="page-container">
-      <div className="prose-content">
-        <span className="eyebrow">About Us</span>
-        <h1>Our Mission</h1>
-        <p className="lead">
-          We believe that healthcare providers shouldn't have to piece together fragmented data to understand a patient's story.
+export const AboutPage = () => (
+  <div className="mx-auto w-full max-w-3xl px-4 py-12 md:px-8 md:py-16">
+    <p className="text-2xs font-semibold uppercase tracking-[0.14em] text-primary">About us</p>
+    <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text md:text-4xl">Our mission</h1>
+    <p className="mt-4 text-base text-muted md:text-lg">
+      We believe patients and clinicians shouldn't have to piece together fragmented medical data
+      to understand a story. The Clinical Narrative Platform unifies symptom history, surfaces
+      patterns automatically, and converts raw entries into clinical narratives a doctor can use.
+    </p>
+
+    <div className="mt-10 grid gap-6 md:grid-cols-2">
+      <article className="rounded-2xl border border-border bg-surface p-6 shadow-soft">
+        <h2 className="m-0 text-lg font-semibold text-text">The problem</h2>
+        <p className="mt-2 text-sm text-muted">
+          Modern medicine generates vast amounts of data, but it's scattered across portals,
+          notes, and apps. The chronological story — the actual signal — gets lost.
         </p>
-        
-        <h2>The Problem</h2>
-        <p>
-          Modern medicine generates vast amounts of data, but it is often scattered across different systems and formats. This fragmentation makes it difficult for healthcare professionals to see the big picture and understand the chronological progression of a patient's health journey.
+      </article>
+      <article className="rounded-2xl border border-border bg-surface p-6 shadow-soft">
+        <h2 className="m-0 text-lg font-semibold text-text">Our approach</h2>
+        <p className="mt-2 text-sm text-muted">
+          Capture entries quickly, analyze them with a transparent insights engine, and let
+          AI-assisted narratives translate the data into language a clinician can act on.
         </p>
-        
-        <h2>Our Solution</h2>
-        <p>
-          The Clinical Narrative Platform was built to solve this problem. By aggregating and organizing medical events into a cohesive timeline, we empower doctors and nurses to make faster, more informed decisions. Our platform uses advanced algorithms to highlight critical insights and ensure that nothing falls through the cracks.
-        </p>
-      </div>
+      </article>
     </div>
-  );
-};
+  </div>
+);

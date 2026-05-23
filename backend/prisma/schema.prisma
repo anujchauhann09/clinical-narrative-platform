@@ -22,11 +22,12 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
 
-  profile        UserProfile?
-  symptomEntries SymptomEntry[]
-  aiSummaries    AiSummary[]
-  refreshTokens  RefreshToken[]
-  role           Role           @relation(fields: [roleName], references: [name], onDelete: Restrict)
+  profile          UserProfile?
+  symptomEntries   SymptomEntry[]
+  aiSummaries      AiSummary[]
+  refreshTokens    RefreshToken[]
+  copilotDocuments CopilotDocument[]
+  role             Role              @relation(fields: [roleName], references: [name], onDelete: Restrict)
 
   @@index([roleName], map: "idx_users_role_name")
   @@index([createdAt], map: "idx_users_created_at")
@@ -175,4 +176,24 @@ model AiSummary {
   @@index([summaryType], map: "idx_ai_summaries_summary_type")
   @@index([createdAt], map: "idx_ai_summaries_created_at")
   @@map("ai_summaries")
+}
+
+model CopilotDocument {
+  id           BigInt   @id @default(autoincrement())
+  publicId     String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  userId       BigInt   @map("user_id")
+  filename     String   @db.VarChar(255)
+  mimeType     String   @map("mime_type") @db.VarChar(120)
+  byteSize     Int      @map("byte_size")
+  chunkCount   Int      @default(0) @map("chunk_count")
+  status       String   @default("processing") @db.VarChar(40)
+  errorMessage String?  @map("error_message") @db.Text
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)], map: "idx_copilot_documents_user_created_at")
+  @@index([status], map: "idx_copilot_documents_status")
+  @@map("copilot_documents")
 }

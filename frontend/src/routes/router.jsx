@@ -10,6 +10,7 @@ import { NarrativesPage } from '../pages/NarrativesPage.jsx';
 import { ReportsPage } from '../pages/ReportsPage.jsx';
 import { NotFoundPage } from '../pages/NotFoundPage.jsx';
 import { ProfilePage } from '../pages/ProfilePage.jsx';
+import { SettingsPage } from '../pages/SettingsPage.jsx';
 import { SignupPage } from '../pages/SignupPage.jsx';
 import { TimelinePage } from '../pages/TimelinePage.jsx';
 import { LandingPage } from '../pages/LandingPage.jsx';
@@ -53,6 +54,7 @@ export const router = createBrowserRouter([
           { path: ROUTES.NARRATIVES, element: <NarrativesPage /> },
           { path: ROUTES.REPORTS, element: <ReportsPage /> },
           { path: ROUTES.PROFILE, element: <ProfilePage /> },
+          { path: ROUTES.SETTINGS, element: <SettingsPage /> },
         ],
       },
     ],

@@ -1,27 +1,35 @@
-export const PrivacyPage = () => {
-  return (
-    <div className="page-container">
-      <div className="prose-content">
-        <span className="eyebrow">Legal</span>
-        <h1>Privacy Policy</h1>
+export const PrivacyPage = () => (
+  <div className="mx-auto w-full max-w-3xl px-4 py-12 md:px-8 md:py-16">
+    <p className="text-2xs font-semibold uppercase tracking-[0.14em] text-primary">Legal</p>
+    <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text md:text-4xl">Privacy Policy</h1>
+    <p className="mt-2 text-xs text-muted">Last updated: May 17, 2026</p>
 
-        <p className="last-updated">Last updated: May 17, 2026</p>
-
-        <h2>1. Information We Collect</h2>
-        <p>
-          We take privacy extremely seriously. We collect information you provide directly to us when you create an account, update your profile, or use our services. This may include your name, email address, professional credentials, and any clinical data you choose to input.
-        </p>
-
-        <h2>2. Security of Your Information</h2>
-        <p>
-          We use administrative, technical, and physical security measures to help protect your personal and clinical information. While we have taken reasonable steps to secure the personal information you provide to us, please be aware that despite our efforts, no security measures are perfect or impenetrable.
-        </p>
-
-        <h2>3. HIPAA Compliance</h2>
-        <p>
-          Our platform is designed to be HIPAA compliant. All protected health information (PHI) is encrypted at rest and in transit. Access to PHI is strictly controlled and audited.
+    <section className="mt-8 space-y-6 text-sm text-muted md:text-base">
+      <div>
+        <h2 className="m-0 text-lg font-semibold text-text">1. Information we collect</h2>
+        <p className="mt-2">
+          We collect information you provide directly when you create an account, update your
+          profile, or log symptoms. This includes your name, email, and any clinical data you
+          choose to record.
         </p>
       </div>
-    </div>
-  );
-};
+
+      <div>
+        <h2 className="m-0 text-lg font-semibold text-text">2. Security of your information</h2>
+        <p className="mt-2">
+          We apply administrative, technical, and physical safeguards to protect your data.
+          Authentication uses HttpOnly refresh tokens; sensitive data is encrypted at rest and
+          in transit.
+        </p>
+      </div>
+
+      <div>
+        <h2 className="m-0 text-lg font-semibold text-text">3. Compliance posture</h2>
+        <p className="mt-2">
+          The platform is designed with HIPAA-style controls. All protected health information
+          access is scoped to the authenticated patient and audited.
+        </p>
+      </div>
+    </section>
+  </div>
+);

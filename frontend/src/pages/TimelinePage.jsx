@@ -1,21 +1,24 @@
-import { Filter, Plus, Search, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { CalendarDays, Filter, Plus, Search, X } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
-import {
-  Badge,
-  Button,
-  Card,
-  Loader,
-  Modal,
-  SymptomEntryForm,
-  TimelineFiltersModal,
-  TimelineGroup,
-} from '../components/index.js';
+import { symptomApi } from '../api/symptomApi.js';
+import { Badge } from '../components/common/Badge.jsx';
+import { Button } from '../components/common/Button.jsx';
+import { Card } from '../components/common/Card.jsx';
+import { EmptyState } from '../components/common/EmptyState.jsx';
+import { Loader } from '../components/common/Loader.jsx';
+import { Modal } from '../components/common/Modal.jsx';
+import { Select } from '../components/common/Select.jsx';
+import { Container, PageHeader } from '../components/layout/PageHeader.jsx';
+import { SymptomEntryForm } from '../components/forms/SymptomEntryForm.jsx';
+import { TimelineFiltersModal } from '../components/timeline/TimelineFiltersModal.jsx';
+import { TimelineGroup } from '../components/timeline/TimelineGroup.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { useDebouncedValue } from '../hooks/useDebouncedValue.js';
 import { useTimelineFeed } from '../hooks/useTimelineFeed.js';
 import { dateService } from '../services/dateService.js';
-import { symptomApi } from '../api/symptomApi.js';
+import { pageFadeRise } from '../services/motions.js';
 
 const EMPTY_FILTERS = {
   pageSize: 20,
@@ -97,7 +100,7 @@ export const TimelinePage = () => {
       })
       .catch((err) => {
         if (!isMounted) return;
-        showToast({ tone: 'danger', message: err.message ?? 'Failed to load filter options' });
+        showToast({ tone: 'danger', message: err?.message ?? 'Failed to load filter options' });
       });
     return () => {
       isMounted = false;
@@ -108,21 +111,19 @@ export const TimelinePage = () => {
     if (!nextCursor) return undefined;
     const node = sentinelRef.current;
     if (!node) return undefined;
-
     const observer = new IntersectionObserver(
       (observed) => {
         if (observed[0].isIntersecting) loadMore();
       },
       { rootMargin: '240px 0px' },
     );
-
     observer.observe(node);
     return () => observer.disconnect();
   }, [nextCursor, loadMore]);
 
   useEffect(() => {
     if (error) {
-      showToast({ tone: 'danger', message: error.message ?? 'Failed to load timeline' });
+      showToast({ tone: 'danger', message: error?.message ?? 'Failed to load timeline' });
     }
   }, [error, showToast]);
 
@@ -148,7 +149,7 @@ export const TimelinePage = () => {
       await refresh();
       setModalState({ open: false, entry: null });
     } catch (err) {
-      showToast({ tone: 'danger', message: err.message ?? 'Failed to save entry' });
+      showToast({ tone: 'danger', message: err?.message ?? 'Failed to save entry' });
     } finally {
       setIsSubmitting(false);
     }
@@ -157,13 +158,12 @@ export const TimelinePage = () => {
   const handleDelete = async (entry) => {
     const confirmed = window.confirm('Delete this entry? This action cannot be undone.');
     if (!confirmed) return;
-
     try {
       await symptomApi.deleteEntry(entry.publicId);
       removeEntry(entry.publicId);
       showToast({ tone: 'success', message: 'Entry deleted' });
     } catch (err) {
-      showToast({ tone: 'danger', message: err.message ?? 'Failed to delete entry' });
+      showToast({ tone: 'danger', message: err?.message ?? 'Failed to delete entry' });
     }
   };
 
@@ -180,9 +180,8 @@ export const TimelinePage = () => {
     setIsFilterOpen(false);
   };
 
-  const removeAdvancedFilter = (patch) => {
+  const removeAdvancedFilter = (patch) =>
     setAdvancedFilters((current) => ({ ...current, ...patch }));
-  };
 
   const clearAllFilters = () => {
     setSearchInput('');
@@ -199,20 +198,18 @@ export const TimelinePage = () => {
 
   const activeFilterChips = [];
   if (advancedFilters.from || advancedFilters.to) {
-    const label = `${advancedFilters.from ? dateService.formatDateTime(advancedFilters.from) : '…'} → ${
-      advancedFilters.to ? dateService.formatDateTime(advancedFilters.to) : '…'
-    }`;
     activeFilterChips.push({
       key: 'date',
-      label,
+      label: `${advancedFilters.from ? dateService.formatDateTime(advancedFilters.from) : '…'} → ${
+        advancedFilters.to ? dateService.formatDateTime(advancedFilters.to) : '…'
+      }`,
       onRemove: () => removeAdvancedFilter({ from: '', to: '' }),
     });
   }
   if (advancedFilters.severityMin !== undefined || advancedFilters.severityMax !== undefined) {
-    const label = `Severity ${advancedFilters.severityMin ?? 1}–${advancedFilters.severityMax ?? 10}`;
     activeFilterChips.push({
       key: 'severity',
-      label,
+      label: `Severity ${advancedFilters.severityMin ?? 1}–${advancedFilters.severityMax ?? 10}`,
       onRemove: () =>
         removeAdvancedFilter({ severityMin: undefined, severityMax: undefined }),
     });
@@ -249,130 +246,147 @@ export const TimelinePage = () => {
     searchInput.trim().length > 0 || activeFilterChips.length > 0 || sortValue !== 'loggedAt:desc';
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <div>
-          <p className="eyebrow">Patient journey</p>
-          <h1>Timeline</h1>
-        </div>
-        <Button icon={Plus} onClick={openCreateModal}>
-          New entry
-        </Button>
-      </header>
+    <Container>
+      <motion.div className="flex flex-col gap-5 md:gap-6" {...pageFadeRise}>
+        <PageHeader
+          actions={
+            <Button icon={Plus} onClick={openCreateModal}>
+              New entry
+            </Button>
+          }
+          description="Every entry, severity, and trigger you have logged — searchable, filterable, chronological."
+          eyebrow="Patient journey"
+          title="Timeline"
+        />
 
-      <Card className="timeline-toolbar">
-        <div className="timeline-toolbar__row">
-          <label className="timeline-search field" htmlFor="timeline-search">
-            <span className="timeline-search__icon" aria-hidden="true">
-              <Search size={16} />
-            </span>
-            <input
-              className="field__input timeline-search__input"
-              id="timeline-search"
-              onChange={(event) => setSearchInput(event.target.value)}
-              placeholder="Search notes…"
-              type="search"
-              value={searchInput}
-            />
-          </label>
-
-          <label className="field timeline-toolbar__sort" htmlFor="timeline-sort">
-            <span className="field__label">Sort</span>
-            <select
-              className="field__input"
-              id="timeline-sort"
-              onChange={(event) => setSortValue(event.target.value)}
-              value={sortValue}
-            >
-              {SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <Button icon={Filter} onClick={() => setIsFilterOpen(true)} variant="secondary">
-            Filters
-          </Button>
-        </div>
-
-        {activeFilterChips.length > 0 || hasAnyFilter ? (
-          <div className="timeline-toolbar__chips">
-            {activeFilterChips.map((chip) => (
-              <button
-                aria-label={`Remove filter ${chip.label}`}
-                className="filter-chip"
-                key={chip.key}
-                onClick={chip.onRemove}
-                type="button"
+        <Card>
+          <Card.Pad padding="sm" className="flex flex-col gap-3">
+            <div className="grid gap-2 sm:grid-cols-[1fr_auto_auto] sm:items-center">
+              <div className="relative">
+                <Search
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+                  size={15}
+                />
+                <input
+                  className="block h-9 w-full rounded-xl border border-border bg-surface pl-9 pr-3 text-sm text-text placeholder:text-muted/70 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  placeholder="Search notes…"
+                  type="search"
+                  value={searchInput}
+                />
+              </div>
+              <Select
+                aria-label="Sort entries"
+                className="sm:min-w-[180px]"
+                inputClassName="h-9 py-0"
+                onChange={(event) => setSortValue(event.target.value)}
+                value={sortValue}
               >
-                <span>{chip.label}</span>
-                <X aria-hidden="true" size={14} />
-              </button>
-            ))}
-            {hasAnyFilter ? (
-              <Button onClick={clearAllFilters} variant="ghost">
-                Clear all
+                {SORT_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </Select>
+              <Button
+                className="h-9"
+                icon={Filter}
+                onClick={() => setIsFilterOpen(true)}
+                size="sm"
+                variant="secondary"
+              >
+                Filters
+                {activeFilterChips.length > 0 ? (
+                  <span className="ml-1 inline-flex items-center rounded-full bg-primary px-1.5 py-0 text-[10px] font-semibold text-primary-contrast">
+                    {activeFilterChips.length}
+                  </span>
+                ) : null}
               </Button>
-            ) : null}
-          </div>
-        ) : null}
-      </Card>
+            </div>
 
-      {isInitializing ? (
-        <Card>
-          <Loader />
+            {activeFilterChips.length > 0 || hasAnyFilter ? (
+              <div className="flex flex-wrap items-center gap-1.5 border-t border-border/60 pt-3">
+                {activeFilterChips.map((chip) => (
+                  <button
+                    aria-label={`Remove filter ${chip.label}`}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary-strong transition-colors hover:bg-primary/15"
+                    key={chip.key}
+                    onClick={chip.onRemove}
+                    type="button"
+                  >
+                    <span>{chip.label}</span>
+                    <X aria-hidden="true" size={12} />
+                  </button>
+                ))}
+                {hasAnyFilter ? (
+                  <Button className="ml-auto" onClick={clearAllFilters} size="sm" variant="ghost">
+                    Clear all
+                  </Button>
+                ) : null}
+              </div>
+            ) : null}
+          </Card.Pad>
         </Card>
-      ) : entries.length === 0 ? (
-        <Card>
-          <h2>No entries match</h2>
-          <p>
-            {hasAnyFilter
-              ? 'Try clearing or loosening filters to see more entries.'
-              : 'Log your first symptom entry to begin building your clinical narrative.'}
-          </p>
-          <div style={{ marginTop: 16 }}>
-            {hasAnyFilter ? (
-              <Button onClick={clearAllFilters} variant="secondary">
-                Clear filters
-              </Button>
-            ) : (
-              <Button icon={Plus} onClick={openCreateModal}>
-                Log first entry
-              </Button>
+
+        {isInitializing ? (
+          <Card>
+            <Card.Body>
+              <Loader />
+            </Card.Body>
+          </Card>
+        ) : entries.length === 0 ? (
+          <EmptyState
+            action={
+              hasAnyFilter ? (
+                <Button onClick={clearAllFilters} variant="secondary">
+                  Clear filters
+                </Button>
+              ) : (
+                <Button icon={Plus} onClick={openCreateModal}>
+                  Log first entry
+                </Button>
+              )
+            }
+            description={
+              hasAnyFilter
+                ? 'Try clearing or loosening filters to see more entries.'
+                : 'Log your first symptom entry to begin building your clinical narrative.'
+            }
+            icon={CalendarDays}
+            title={hasAnyFilter ? 'No entries match' : 'No entries yet'}
+          />
+        ) : (
+          <div className="flex flex-col gap-6">
+            {groupedEntries.map(([dateKey, dayEntries]) => (
+              <TimelineGroup
+                dateKey={dateKey}
+                entries={dayEntries}
+                key={dateKey}
+                onDelete={handleDelete}
+                onEdit={openEditModal}
+              />
+            ))}
+
+            <div aria-hidden="true" className="h-px" ref={sentinelRef} />
+
+            {isLoadingMore ? (
+              <div className="flex justify-center py-3">
+                <Loader />
+              </div>
+            ) : nextCursor ? null : (
+              <div className="flex justify-center py-3">
+                <Badge>End of timeline</Badge>
+              </div>
             )}
           </div>
-        </Card>
-      ) : (
-        <div className="timeline-feed">
-          {groupedEntries.map(([dateKey, dayEntries]) => (
-            <TimelineGroup
-              dateKey={dateKey}
-              entries={dayEntries}
-              key={dateKey}
-              onDelete={handleDelete}
-              onEdit={openEditModal}
-            />
-          ))}
-
-          <div className="timeline-feed__sentinel" ref={sentinelRef} aria-hidden="true" />
-
-          {isLoadingMore ? (
-            <div className="timeline-feed__more">
-              <Loader />
-            </div>
-          ) : nextCursor ? null : (
-            <div className="timeline-feed__end">
-              <Badge>End of timeline</Badge>
-            </div>
-          )}
-        </div>
-      )}
+        )}
+      </motion.div>
 
       <Modal
         isOpen={modalState.open}
         onClose={closeModal}
+        size="lg"
         title={modalState.entry ? 'Edit symptom entry' : 'Log a new symptom entry'}
       >
         <SymptomEntryForm
@@ -394,6 +408,6 @@ export const TimelinePage = () => {
         symptoms={symptoms}
         triggers={triggers}
       />
-    </div>
+    </Container>
   );
 };

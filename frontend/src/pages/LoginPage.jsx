@@ -1,61 +1,94 @@
+import { zodResolver } from '@hookform/resolvers/zod';
+import { CheckCircle2, LogIn } from 'lucide-react';
+import { useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
 
-import { Button, Input } from '../components/index.js';
 import { authApi } from '../api/authApi.js';
+import { Button } from '../components/common/Button.jsx';
+import { Input } from '../components/common/Input.jsx';
 import { ROUTES } from '../constants/app.js';
-import { useAsyncAction } from '../hooks/useAsyncAction.js';
 import { useAuthStore } from '../store/authStore.js';
 import { loginSchema } from '../validators/auth.validator.js';
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [validationError, setValidationError] = useState(null);
   const setSession = useAuthStore((state) => state.setSession);
-  const { execute, error, isLoading } = useAsyncAction(authApi.login);
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const {
+    formState: { errors, isSubmitting },
+    handleSubmit,
+    register,
+    setError,
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
-    const formData = new FormData(event.currentTarget);
-    const parsedPayload = loginSchema.safeParse({
-      email: formData.get('email'),
-      password: formData.get('password'),
-    });
-
-    if (!parsedPayload.success) {
-      setValidationError(parsedPayload.error.issues[0]?.message ?? 'Please check your login details');
-      return;
+  const onSubmit = async (values) => {
+    try {
+      const response = await authApi.login(values);
+      setSession({ user: response.data.user });
+      navigate(location.state?.from?.pathname ?? ROUTES.DASHBOARD, { replace: true });
+    } catch (error) {
+      setError('root', { message: error?.message ?? 'Login failed. Please try again.' });
     }
-
-    setValidationError(null);
-    const payload = parsedPayload.data;
-    const response = await execute(payload);
-
-    setSession(response.data);
-    navigate(location.state?.from?.pathname ?? ROUTES.DASHBOARD, { replace: true });
   };
 
   return (
-    <form className="auth-form" onSubmit={handleSubmit}>
-      <div>
-        <p className="eyebrow">Welcome back</p>
-        <h1>Login</h1>
-      </div>
-      {location.state?.message && (
-        <div className="mb-4 rounded-md bg-green-50 p-4 text-sm text-green-700">
-          {location.state.message}
+    <form className="flex flex-col gap-5" noValidate onSubmit={handleSubmit(onSubmit)}>
+      <header className="flex flex-col gap-1">
+        <p className="text-2xs font-semibold uppercase tracking-[0.14em] text-primary">Welcome back</p>
+        <h1 className="m-0 text-2xl font-semibold tracking-tight text-text">Sign in to your account</h1>
+        <p className="text-sm text-muted">
+          Securely access your clinical timeline, AI summaries, and reports.
+        </p>
+      </header>
+
+      {location.state?.message ? (
+        <div
+          aria-live="polite"
+          className="flex items-start gap-2 rounded-xl border border-success/30 bg-success/10 px-3 py-2 text-sm text-success"
+        >
+          <CheckCircle2 aria-hidden="true" className="mt-0.5" size={16} />
+          <span>{location.state.message}</span>
         </div>
-      )}
-      <Input autoComplete="email" id="email" label="Email" name="email" type="email" />
-      <Input autoComplete="current-password" id="password" label="Password" name="password" type="password" />
-      {validationError || error ? (
-        <p className="form-error">{validationError ?? error.message}</p>
       ) : null}
-      <Button isLoading={isLoading} type="submit">Login</Button>
-      <p className="auth-switch">
-        New here? <Link to={ROUTES.SIGNUP}>Create an account</Link>
+
+      <div className="flex flex-col gap-4">
+        <Input
+          autoComplete="email"
+          error={errors.email?.message}
+          label="Email"
+          required
+          type="email"
+          {...register('email')}
+        />
+        <Input
+          autoComplete="current-password"
+          error={errors.password?.message}
+          label="Password"
+          required
+          type="password"
+          {...register('password')}
+        />
+      </div>
+
+      {errors.root ? (
+        <p className="text-sm font-medium text-danger" role="alert">
+          {errors.root.message}
+        </p>
+      ) : null}
+
+      <Button icon={LogIn} isLoading={isSubmitting} size="lg" type="submit">
+        Sign in
+      </Button>
+
+      <p className="text-center text-sm text-muted">
+        New here?{' '}
+        <Link className="font-medium text-primary hover:text-primary-strong" to={ROUTES.SIGNUP}>
+          Create an account
+        </Link>
       </p>
     </form>
   );

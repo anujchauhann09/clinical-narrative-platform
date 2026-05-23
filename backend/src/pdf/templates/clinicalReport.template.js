@@ -240,7 +240,6 @@ export const renderClinicalReportHtml = ({
         <div class="meta-row"><span class="meta-row__label">Sex</span><span class="meta-row__value">${escapeHtml(profile.sex ?? '—')}</span></div>
         <div class="meta-row"><span class="meta-row__label">Date of birth</span><span class="meta-row__value">${escapeHtml(profile.dateOfBirth ? formatDate(profile.dateOfBirth) : '—')}</span></div>
         <div class="meta-row"><span class="meta-row__label">Phone</span><span class="meta-row__value">${escapeHtml(profile.phone ?? '—')}</span></div>
-        <div class="meta-row"><span class="meta-row__label">Patient ID</span><span class="meta-row__value">${escapeHtml(patient.publicId)}</span></div>
       </div>
       ${
         profile.bio
@@ -310,11 +309,6 @@ export const renderClinicalReportHtml = ({
       ${renderNarrativeBlock('Pattern explanation', narratives.pattern)}
       ${renderNarrativeBlock('Timeline narrative', narratives.timeline)}
       ${renderDoctorSummary(narratives.doctor)}
-    </section>
-
-    <section class="section">
-      <h2 class="section__title">6. Medication notes</h2>
-      <p class="empty">No medications recorded yet. (Medication tracking will be added in a future release.)</p>
     </section>
 
     <p class="disclaimer">

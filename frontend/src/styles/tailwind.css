@@ -1,0 +1,155 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+
+    --cnp-bg: #f8fafc;
+    --cnp-surface: #ffffff;
+    --cnp-surface-2: #f1f5f9;
+    --cnp-border: #e2e8f0;
+    --cnp-text: #0f172a;
+    --cnp-text-muted: #475569;
+
+    --cnp-primary: #0ea5e9;
+    --cnp-primary-strong: #0369a1;
+    --cnp-primary-soft: rgba(14, 165, 233, 0.12);
+    --cnp-primary-contrast: #ffffff;
+
+    --cnp-accent: #22d3ee;
+    --cnp-success: #10b981;
+    --cnp-warning: #f59e0b;
+    --cnp-danger: #ef4444;
+
+    --cnp-grad-from: #0ea5e9;
+    --cnp-grad-to: #22d3ee;
+  }
+
+  html.dark {
+    color-scheme: dark;
+
+    --cnp-bg: #0b1220;
+    --cnp-surface: #0f172a;
+    --cnp-surface-2: #111b2e;
+    --cnp-border: #1e293b;
+    --cnp-text: #e2e8f0;
+    --cnp-text-muted: #94a3b8;
+
+    --cnp-primary: #38bdf8;
+    --cnp-primary-strong: #0ea5e9;
+    --cnp-primary-soft: rgba(56, 189, 248, 0.16);
+    --cnp-primary-contrast: #06121f;
+
+    --cnp-accent: #22d3ee;
+    --cnp-success: #34d399;
+    --cnp-warning: #fbbf24;
+    --cnp-danger: #f87171;
+
+    --cnp-grad-from: #38bdf8;
+    --cnp-grad-to: #22d3ee;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-bg text-text font-sans antialiased leading-relaxed;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4 {
+    @apply tracking-tight;
+  }
+
+  *,
+  ::before,
+  ::after {
+    border-color: var(--cnp-border);
+  }
+
+  /* Respect user motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Smooth color transitions only when a theme switch happens */
+  html.theme-transition,
+  html.theme-transition * {
+    transition: background-color 250ms ease, color 250ms ease,
+      border-color 250ms ease, fill 250ms ease, stroke 250ms ease !important;
+  }
+
+  /* Focus ring — accessible by default */
+  :focus-visible {
+    outline: 2px solid var(--cnp-primary);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  .ai-text-gradient {
+    background: linear-gradient(135deg, var(--cnp-grad-from), var(--cnp-grad-to));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass-panel {
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    background: color-mix(in srgb, var(--cnp-surface) 78%, transparent);
+  }
+
+  /* Long-form narrative reading: comfortable measure, generous line-height */
+  .prose-narrative {
+    @apply text-[15px] leading-[1.75] text-text;
+    max-width: 70ch;
+  }
+  .prose-narrative p {
+    @apply m-0;
+  }
+  .prose-narrative p + p,
+  .prose-narrative p + ul,
+  .prose-narrative ul + p {
+    @apply mt-4;
+  }
+  .prose-narrative ul {
+    @apply m-0 grid gap-2 pl-5;
+  }
+  .prose-narrative ul li {
+    @apply leading-[1.7];
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--cnp-border) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: var(--cnp-border);
+    border-radius: 999px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}

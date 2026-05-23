@@ -4,7 +4,7 @@ import { authService } from '../services/auth.service.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { sendAuthSession } from '../utils/authResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { clearRefreshTokenCookie } from '../utils/refreshTokenCookie.js';
+import { clearAuthCookies } from '../utils/authCookies.js';
 
 export const signup = asyncHandler(async (req, res) => {
   const user = await authService.signup(req.validated.body);
@@ -30,7 +30,7 @@ export const refreshToken = asyncHandler(async (req, res) => {
 export const logout = asyncHandler(async (req, res) => {
   await authService.logout(req.cookies[COOKIE_NAMES.REFRESH_TOKEN]);
 
-  clearRefreshTokenCookie(res);
+  clearAuthCookies(res);
   res.status(HTTP_STATUS.OK).json(
     ApiResponse.success({
       message: 'Logout successful',

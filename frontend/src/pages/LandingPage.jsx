@@ -1,74 +1,166 @@
-import { ArrowRight, ShieldCheck, Stethoscope, Clock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import {
+  ArrowRight,
+  Brain,
+  CalendarDays,
+  FileText,
+  LineChart,
+  ShieldCheck,
+  Sparkles,
+  Stethoscope,
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 
-import { Button } from '../components/Button.jsx';
+import { Button } from '../components/common/Button.jsx';
+import { Card } from '../components/common/Card.jsx';
 import { ROUTES } from '../constants/app.js';
+import { pageFadeRise, staggerContainer, staggerItem } from '../services/motions.js';
 import { useAuthStore } from '../store/authStore.js';
+
+const FEATURES = [
+  {
+    icon: CalendarDays,
+    title: 'Symptom timeline',
+    description: 'Every entry, severity, mood, and trigger captured in a fast, searchable chronological view.',
+  },
+  {
+    icon: Brain,
+    title: 'Insights engine',
+    description: 'Surface correlations, severity trends, and day-of-week patterns automatically.',
+  },
+  {
+    icon: Sparkles,
+    title: 'AI narratives',
+    description: 'AI turns your log into a doctor-ready clinical summary in seconds.',
+  },
+  {
+    icon: FileText,
+    title: 'Clinical PDFs',
+    description: 'Download a clinician-formatted PDF report with charts, triggers, and AI summaries.',
+  },
+  {
+    icon: ShieldCheck,
+    title: 'Secure by design',
+    description: 'Encrypted at rest and in transit. Strict auth, audit-friendly.',
+  },
+  {
+    icon: LineChart,
+    title: 'Visual analytics',
+    description: 'Beautiful, theme-aware charts for severity, trigger frequency, and progression.',
+  },
+];
 
 export const LandingPage = () => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
   return (
-    <div className="landing-page">
-      <section className="hero">
-        <div className="hero__container">
-          <div className="hero__content">
-            <span className="eyebrow">The Future of Medical Records</span>
-            <h1 className="hero__title">
-              Your Clinical Narrative, <span className="text-highlight">Unified</span>.
-            </h1>
-            <p className="hero__subtitle">
-              Transform fragmented medical data into a cohesive, chronological timeline. Empowering healthcare professionals with clear, actionable insights.
-            </p>
-            <div className="hero__actions">
-              {isAuthenticated ? (
-                <Button as={Link} to={ROUTES.DASHBOARD} className="button--large button--primary">
-                  Open Dashboard <ArrowRight size={18} />
-                </Button>
-              ) : (
-                <Button as={Link} to={ROUTES.SIGNUP} className="button--large button--primary">
-                  Get Started <ArrowRight size={18} />
-                </Button>
-              )}
-              <Button as={Link} to={ROUTES.ABOUT} className="button--large button--secondary">
-                Learn More
-              </Button>
-            </div>
-          </div>
-        </div>
+    <div className="relative overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[520px] bg-surface-grad"
+      />
+
+      <section className="mx-auto flex w-full max-w-6xl flex-col items-center px-4 py-12 text-center sm:px-6 md:px-8 md:py-20">
+        <motion.span
+          className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary-strong"
+          {...pageFadeRise}
+        >
+          <Sparkles aria-hidden="true" size={12} /> The future of medical records
+        </motion.span>
+        <motion.h1
+          className="mt-5 max-w-3xl text-[32px] font-semibold tracking-tight text-text sm:text-4xl md:text-5xl lg:text-[56px] lg:leading-[1.05]"
+          {...pageFadeRise}
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
+        >
+          Your clinical narrative, <span className="ai-text-gradient">unified.</span>
+        </motion.h1>
+        <motion.p
+          className="mt-4 max-w-2xl text-[15px] leading-relaxed text-muted md:text-base"
+          {...pageFadeRise}
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
+        >
+          Track symptoms, surface patterns, and generate doctor-ready summaries — all in a fast,
+          premium, AI-assisted workspace built for healthcare.
+        </motion.p>
+        <motion.div
+          className="mt-7 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3"
+          {...pageFadeRise}
+          transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+        >
+          {isAuthenticated ? (
+            <Button as={Link} iconRight={ArrowRight} size="lg" to={ROUTES.DASHBOARD} variant="ai">
+              Open Dashboard
+            </Button>
+          ) : (
+            <Button as={Link} iconRight={ArrowRight} size="lg" to={ROUTES.SIGNUP} variant="ai">
+              Get started — it&rsquo;s free
+            </Button>
+          )}
+          <Button as={Link} size="lg" to={ROUTES.ABOUT} variant="secondary">
+            Learn more
+          </Button>
+        </motion.div>
       </section>
 
-      <section className="features">
-        <div className="features__container">
-          <h2 className="section-title">Built for Healthcare Professionals</h2>
-          <div className="feature-grid">
-            <div className="feature-card">
-              <div className="feature-card__icon">
-                <Clock size={28} />
-              </div>
-              <h3 className="feature-card__title">Chronological Timeline</h3>
-              <p className="feature-card__desc">
-                View patient histories in an intuitive, beautifully rendered timeline that highlights key events and progression.
-              </p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-card__icon">
-                <Stethoscope size={28} />
-              </div>
-              <h3 className="feature-card__title">Clinical Insights</h3>
-              <p className="feature-card__desc">
-                Leverage automated insights that identify critical patterns and potential health risks hidden in the data.
-              </p>
-            </div>
-            <div className="feature-card">
-              <div className="feature-card__icon">
-                <ShieldCheck size={28} />
-              </div>
-              <h3 className="feature-card__title">Secure & Compliant</h3>
-              <p className="feature-card__desc">
-                Engineered with healthcare-grade security, ensuring that sensitive patient information is always protected.
-              </p>
-            </div>
+      <section className="mx-auto w-full max-w-6xl px-4 pb-12 sm:px-6 md:px-8 md:pb-16">
+        <div className="mb-8 text-center">
+          <p className="text-2xs font-semibold uppercase tracking-[0.14em] text-primary">
+            Built for patients &amp; clinicians
+          </p>
+          <h2 className="mt-2 text-xl font-semibold tracking-tight text-text sm:text-2xl md:text-[28px]">
+            Everything you need to tell your story
+          </h2>
+        </div>
+
+        <motion.div
+          animate="animate"
+          className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+          initial="initial"
+          variants={staggerContainer}
+          viewport={{ once: true, amount: 0.2 }}
+          whileInView="animate"
+        >
+          {FEATURES.map((feature) => {
+            const Icon = feature.icon;
+            return (
+              <motion.div key={feature.title} variants={staggerItem}>
+                <Card className="h-full" interactive>
+                  <Card.Pad padding="sm" className="flex flex-col gap-2.5">
+                    <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary/10 text-primary">
+                      <Icon aria-hidden="true" size={16} />
+                    </span>
+                    <h3 className="m-0 text-[15px] font-semibold tracking-tight text-text">
+                      {feature.title}
+                    </h3>
+                    <p className="m-0 text-[13px] leading-relaxed text-muted">{feature.description}</p>
+                  </Card.Pad>
+                </Card>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 md:px-8">
+        <div className="rounded-2xl border border-border bg-surface px-5 py-8 text-center shadow-soft sm:px-8 md:px-10 md:py-12">
+          <Stethoscope aria-hidden="true" className="mx-auto mb-3 text-primary" size={26} />
+          <h2 className="text-lg font-semibold text-text md:text-xl">
+            Start tracking in under a minute
+          </h2>
+          <p className="mx-auto mt-2 max-w-xl text-sm text-muted">
+            Free to use. No card required. Bring your symptoms, leave with a story your clinician
+            can act on.
+          </p>
+          <div className="mt-5 flex justify-center">
+            {isAuthenticated ? (
+              <Button as={Link} iconRight={ArrowRight} to={ROUTES.DASHBOARD} variant="ai">
+                Open Dashboard
+              </Button>
+            ) : (
+              <Button as={Link} iconRight={ArrowRight} to={ROUTES.SIGNUP} variant="ai">
+                Create your account
+              </Button>
+            )}
           </div>
         </div>
       </section>

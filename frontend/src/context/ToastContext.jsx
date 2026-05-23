@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 
-import { Toast } from '../components/Toast.jsx';
+import { Toast } from '../components/common/Toast.jsx';
 
 const ToastContext = createContext(null);
 
@@ -9,7 +9,7 @@ export const ToastProvider = ({ children }) => {
 
   const showToast = useCallback((nextToast) => {
     setToast(nextToast);
-    window.setTimeout(() => setToast(null), nextToast.duration ?? 3500);
+    window.setTimeout(() => setToast(null), nextToast?.duration ?? 3500);
   }, []);
 
   const value = useMemo(() => ({ showToast }), [showToast]);
@@ -17,17 +17,17 @@ export const ToastProvider = ({ children }) => {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      {toast ? <Toast tone={toast.tone}>{toast.message}</Toast> : null}
+      <Toast isOpen={Boolean(toast)} tone={toast?.tone}>
+        {toast?.message}
+      </Toast>
     </ToastContext.Provider>
   );
 };
 
 export const useToast = () => {
   const context = useContext(ToastContext);
-
   if (!context) {
     throw new Error('useToast must be used within ToastProvider');
   }
-
   return context;
 };

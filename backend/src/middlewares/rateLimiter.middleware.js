@@ -15,6 +15,17 @@ export const apiRateLimiter = rateLimit({
   handler: tooManyRequestsHandler('Too many requests. Please try again later.'),
 });
 
+export const authRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: 'draft-7',
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  handler: tooManyRequestsHandler(
+    'Too many authentication attempts. Please wait a few minutes and try again.',
+  ),
+});
+
 export const aiGenerationRateLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
   limit: 20,

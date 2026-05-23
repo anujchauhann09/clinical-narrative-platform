@@ -84,7 +84,6 @@ export const clinicalReportService = {
 
     const html = renderClinicalReportHtml({
       patient: {
-        publicId: user.publicId,
         email: user.email,
         profile: user.profile,
       },

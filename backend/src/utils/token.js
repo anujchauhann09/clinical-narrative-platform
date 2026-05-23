@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import jwt from 'jsonwebtoken';
 
 import { TOKEN_TYPES } from '../constants/auth.js';
@@ -37,6 +39,7 @@ export const signToken = (payload, tokenType) =>
     getSecretByTokenType(tokenType),
     {
       expiresIn: getExpiryByTokenType(tokenType),
+      jwtid: randomUUID(),
     }
   );
 
