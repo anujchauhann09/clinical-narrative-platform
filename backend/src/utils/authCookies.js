@@ -2,57 +2,57 @@ import { COOKIE_NAMES } from '../constants/cookies.js';
 import { env } from '../config/env.js';
 
 
-const isProd = env.NODE_ENV === 'production';
-
-const baseCookieOptions = (path, maxAge) => ({
-  httpOnly: true,
-  secure: isProd,
-  sameSite: isProd ? 'none' : 'strict',
-  path,
-  maxAge,
-});
+const cookiePolicy = (req, path, maxAge) => {
+  const overHttps = Boolean(req?.secure);
+  return {
+    httpOnly: true,
+    secure: overHttps,
+    sameSite: overHttps ? 'none' : 'strict',
+    path,
+    maxAge,
+  };
+};
 
 const accessCookiePath = env.API_PREFIX;
 const refreshCookiePath = `${env.API_PREFIX}/auth`;
 const csrfCookiePath = '/';
 
-export const setAccessTokenCookie = (res, accessToken, maxAge) => {
-  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, baseCookieOptions(accessCookiePath, maxAge));
+export const setAccessTokenCookie = (req, res, accessToken, maxAge) => {
+  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, cookiePolicy(req, accessCookiePath, maxAge));
 };
 
-export const setRefreshTokenCookie = (res, refreshToken, maxAge) => {
+export const setRefreshTokenCookie = (req, res, refreshToken, maxAge) => {
   res.cookie(
     COOKIE_NAMES.REFRESH_TOKEN,
     refreshToken,
-    baseCookieOptions(refreshCookiePath, maxAge),
+    cookiePolicy(req, refreshCookiePath, maxAge),
   );
 };
 
-
-export const setCsrfTokenCookie = (res, token, maxAge) => {
+export const setCsrfTokenCookie = (req, res, token, maxAge) => {
   res.cookie(COOKIE_NAMES.CSRF_TOKEN, token, {
-    ...baseCookieOptions(csrfCookiePath, maxAge),
+    ...cookiePolicy(req, csrfCookiePath, maxAge),
     httpOnly: false,
   });
 };
 
-export const clearAccessTokenCookie = (res) => {
-  res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, baseCookieOptions(accessCookiePath, 0));
+export const clearAccessTokenCookie = (req, res) => {
+  res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, cookiePolicy(req, accessCookiePath, 0));
 };
 
-export const clearRefreshTokenCookie = (res) => {
-  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, baseCookieOptions(refreshCookiePath, 0));
+export const clearRefreshTokenCookie = (req, res) => {
+  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, cookiePolicy(req, refreshCookiePath, 0));
 };
 
-export const clearCsrfTokenCookie = (res) => {
+export const clearCsrfTokenCookie = (req, res) => {
   res.clearCookie(COOKIE_NAMES.CSRF_TOKEN, {
-    ...baseCookieOptions(csrfCookiePath, 0),
+    ...cookiePolicy(req, csrfCookiePath, 0),
     httpOnly: false,
   });
 };
 
-export const clearAuthCookies = (res) => {
-  clearAccessTokenCookie(res);
-  clearRefreshTokenCookie(res);
-  clearCsrfTokenCookie(res);
+export const clearAuthCookies = (req, res) => {
+  clearAccessTokenCookie(req, res);
+  clearRefreshTokenCookie(req, res);
+  clearCsrfTokenCookie(req, res);
 };

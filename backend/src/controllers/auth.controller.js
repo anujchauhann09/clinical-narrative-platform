@@ -37,12 +37,12 @@ export const login = asyncHandler(async (req, res) => {
     req,
   });
 
-  sendAuthSession(res, HTTP_STATUS.OK, session, 'Login successful');
+  sendAuthSession(req, res, HTTP_STATUS.OK, session, 'Login successful');
 });
 
 export const refreshToken = asyncHandler(async (req, res) => {
   const session = await authService.refresh(req.cookies[COOKIE_NAMES.REFRESH_TOKEN]);
-  sendAuthSession(res, HTTP_STATUS.OK, session, 'Token refreshed');
+  sendAuthSession(req, res, HTTP_STATUS.OK, session, 'Token refreshed');
 });
 
 export const logout = asyncHandler(async (req, res) => {
@@ -54,7 +54,7 @@ export const logout = asyncHandler(async (req, res) => {
     req,
   });
 
-  clearAuthCookies(res);
+  clearAuthCookies(req, res);
   res.status(HTTP_STATUS.OK).json(
     ApiResponse.success({
       message: 'Logout successful',

@@ -28,6 +28,7 @@ export const createApp = () => {
   const app = express();
 
   app.disable('x-powered-by');
+  app.set('trust proxy', 1);
   app.use(pinoHttp(requestLoggerOptions));
   app.use(helmet());
   app.use(cors(corsOptions));
@@ -39,9 +40,6 @@ export const createApp = () => {
   app.use(sanitizeRequest);
   app.use(compression());
 
-  // CSRF must run after cookieParser (needs req.cookies) and only for the
-  // API namespace. Safe methods + login/signup/refresh/logout are exempt
-  // inside the middleware itself.
   app.use(env.API_PREFIX, csrfProtection, routes);
   app.use(notFoundHandler);
   app.use(errorHandler);
