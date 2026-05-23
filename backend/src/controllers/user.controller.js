@@ -29,7 +29,7 @@ export const updateMyProfile = asyncHandler(async (req, res) => {
 export const deleteMyAccount = asyncHandler(async (req, res) => {
   await userService.deleteAccount(req.auth.sub, req.validated.body.password);
 
-  clearAuthCookies(res);
+  clearAuthCookies(req, res);
   res.status(HTTP_STATUS.OK).json(
     ApiResponse.success({
       message: 'Account deleted',

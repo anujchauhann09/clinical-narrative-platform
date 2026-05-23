@@ -1,53 +1,43 @@
 import { COOKIE_NAMES } from '../constants/cookies.js';
-import { env } from '../config/env.js';
 
+const isProduction = process.env.NODE_ENV === 'production';
 
-const isProduction = env.NODE_ENV === 'production';
-
-const cookiePolicy = (_req, path, maxAge) => ({
+const tokenCookieOptions = {
   httpOnly: true,
   secure: isProduction,
   sameSite: isProduction ? 'none' : 'lax',
-  path,
-  maxAge,
-});
-
-const accessCookiePath = env.API_PREFIX;
-const refreshCookiePath = `${env.API_PREFIX}/auth`;
-const csrfCookiePath = '/';
-
-export const setAccessTokenCookie = (req, res, accessToken, maxAge) => {
-  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, cookiePolicy(req, accessCookiePath, maxAge));
+  path: '/',
 };
 
-export const setRefreshTokenCookie = (req, res, refreshToken, maxAge) => {
-  res.cookie(
-    COOKIE_NAMES.REFRESH_TOKEN,
-    refreshToken,
-    cookiePolicy(req, refreshCookiePath, maxAge),
-  );
+const csrfCookieOptions = {
+  httpOnly: false,
+  secure: isProduction,
+  sameSite: isProduction ? 'none' : 'lax',
+  path: '/',
 };
 
-export const setCsrfTokenCookie = (req, res, token, maxAge) => {
-  res.cookie(COOKIE_NAMES.CSRF_TOKEN, token, {
-    ...cookiePolicy(req, csrfCookiePath, maxAge),
-    httpOnly: false,
-  });
+export const setAccessTokenCookie = (_req, res, accessToken, maxAge) => {
+  res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, { ...tokenCookieOptions, maxAge });
 };
 
-export const clearAccessTokenCookie = (req, res) => {
-  res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, cookiePolicy(req, accessCookiePath, 0));
+export const setRefreshTokenCookie = (_req, res, refreshToken, maxAge) => {
+  res.cookie(COOKIE_NAMES.REFRESH_TOKEN, refreshToken, { ...tokenCookieOptions, maxAge });
 };
 
-export const clearRefreshTokenCookie = (req, res) => {
-  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, cookiePolicy(req, refreshCookiePath, 0));
+export const setCsrfTokenCookie = (_req, res, token, maxAge) => {
+  res.cookie(COOKIE_NAMES.CSRF_TOKEN, token, { ...csrfCookieOptions, maxAge });
 };
 
-export const clearCsrfTokenCookie = (req, res) => {
-  res.clearCookie(COOKIE_NAMES.CSRF_TOKEN, {
-    ...cookiePolicy(req, csrfCookiePath, 0),
-    httpOnly: false,
-  });
+export const clearAccessTokenCookie = (_req, res) => {
+  res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, tokenCookieOptions);
+};
+
+export const clearRefreshTokenCookie = (_req, res) => {
+  res.clearCookie(COOKIE_NAMES.REFRESH_TOKEN, tokenCookieOptions);
+};
+
+export const clearCsrfTokenCookie = (_req, res) => {
+  res.clearCookie(COOKIE_NAMES.CSRF_TOKEN, csrfCookieOptions);
 };
 
 export const clearAuthCookies = (req, res) => {
