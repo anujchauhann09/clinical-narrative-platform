@@ -20,6 +20,15 @@ export const userRepository = {
     });
   },
 
+  // Minimal profile lookup for AI-context building — avoids pulling the
+  // password hash / email when only display fields are needed.
+  findProfileSummaryByUserPublicId(publicId) {
+    return prisma.userProfile.findFirst({
+      where: { user: { publicId } },
+      select: { name: true, dateOfBirth: true, sex: true },
+    });
+  },
+
   createWithProfile({ email, name, passwordHash }) {
     return prisma.user.create({
       data: {

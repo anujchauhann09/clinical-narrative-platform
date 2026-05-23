@@ -4,8 +4,9 @@ export const AboutPage = () => (
     <h1 className="mt-2 text-3xl font-semibold tracking-tight text-text md:text-4xl">Our mission</h1>
     <p className="mt-4 text-base text-muted md:text-lg">
       We believe patients and clinicians shouldn't have to piece together fragmented medical data
-      to understand a story. The Clinical Narrative Platform unifies symptom history, surfaces
-      patterns automatically, and converts raw entries into clinical narratives a doctor can use.
+      to understand a story. SymptIQ — a clinical narrative platform for AI-powered symptom
+      intelligence — unifies symptom history, surfaces patterns automatically, and converts raw
+      entries into clinical narratives a doctor can use.
     </p>
 
     <div className="mt-10 grid gap-6 md:grid-cols-2">

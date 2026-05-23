@@ -6,22 +6,15 @@ import {
   copilotDocumentRepository,
   DOCUMENT_STATUS,
 } from '../repositories/copilotDocument.repository.js';
+import { chunkArray } from '../utils/arrayChunk.js';
 import { logger } from '../utils/logger.js';
 import { sanitizeFilename, verifyDocumentFileType } from '../utils/uploadGuards.js';
 import { documentExtractionService } from './documentExtraction.service.js';
 import { textChunkerService } from './textChunker.service.js';
 import { vectorStoreService } from './vectorStore.service.js';
 
-const batched = (items, size) => {
-  const out = [];
-  for (let i = 0; i < items.length; i += size) {
-    out.push(items.slice(i, i + size));
-  }
-  return out;
-};
-
 const embedAllChunks = async (chunks) => {
-  const batches = batched(chunks, env.COPILOT_EMBEDDING_BATCH);
+  const batches = chunkArray(chunks, env.COPILOT_EMBEDDING_BATCH);
   const all = [];
   for (const batch of batches) {
     const vectors = await embeddingClient.embedDocuments(batch);

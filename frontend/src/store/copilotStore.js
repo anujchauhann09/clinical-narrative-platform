@@ -8,7 +8,7 @@ const createId = () =>
 const WELCOME_MESSAGE = {
   role: 'assistant',
   content:
-    "Hi — I'm your Clinical Copilot. I can help you understand your logged symptoms, severity trends, triggers, and any clinical documents you've uploaded. Ask me anything health-related. I won't diagnose; for anything urgent, please contact a clinician.",
+    "Hi — I'm your SymptIQ Copilot. I can help you understand your logged symptoms, severity trends, triggers, and any clinical documents you've uploaded. Ask me anything health-related. I won't diagnose; for anything urgent, please contact a clinician.",
 };
 
 const seed = () => [{ id: createId(), ...WELCOME_MESSAGE, createdAt: new Date().toISOString() }];

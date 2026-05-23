@@ -9,8 +9,7 @@ import { passwordService } from './password.service.js';
 import { sessionService } from './session.service.js';
 import { tokenService } from './token.service.js';
 
-// Per-account lockout policy. Held here (not in env) for now since these are
-// security parameters we'd rather change via code review than via runtime config.
+
 const LOCKOUT_THRESHOLD = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
@@ -31,9 +30,6 @@ export const authService = {
   async login({ email, password }) {
     const user = await userRepository.findByEmail(email);
 
-    // We always compare a password (real or dummy) to keep response timing
-    // consistent between "user does not exist" and "wrong password", and to
-    // avoid an account-existence oracle.
     if (!user) {
       await passwordService.comparePassword(password, '$2b$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvali');
       throw new AuthError('Invalid email or password');

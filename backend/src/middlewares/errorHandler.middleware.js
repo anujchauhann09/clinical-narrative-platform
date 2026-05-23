@@ -23,10 +23,13 @@ const normalizeError = (error) => {
     error instanceof Prisma.PrismaClientKnownRequestError ||
     error instanceof Prisma.PrismaClientValidationError
   ) {
-    return new DatabaseError('Database operation failed');
+    return new DatabaseError();
   }
 
-  return new ApiError('Internal server error', HTTP_STATUS.INTERNAL_SERVER_ERROR);
+  return new ApiError(
+    'Something went wrong on our end. Please try again.',
+    HTTP_STATUS.INTERNAL_SERVER_ERROR,
+  );
 };
 
 export const errorHandler = (error, req, res, _next) => {
@@ -38,9 +41,6 @@ export const errorHandler = (error, req, res, _next) => {
     statusCode: normalizedError.statusCode,
   };
 
-  // 5xx is our problem (bugs, upstream failures) — log as error so it lands
-  // in the persistent error file. 4xx is operational (auth/validation) and
-  // stays at warn so the error file doesn't get polluted with noise.
   if (normalizedError.statusCode >= 500) {
     logger.error(logPayload, normalizedError.message);
   } else {

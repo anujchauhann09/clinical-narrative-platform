@@ -2,7 +2,7 @@ import { Activity, ShieldCheck, Sparkles } from 'lucide-react';
 import { Link, Outlet } from 'react-router-dom';
 
 import { ThemeToggle } from '../components/common/ThemeToggle.jsx';
-import { APP_NAME, ROUTES } from '../constants/app.js';
+import { APP_KICKER, APP_NAME, ROUTES } from '../constants/app.js';
 import { ToastProvider } from '../context/ToastContext.jsx';
 
 const TRUST_BULLETS = [
@@ -13,7 +13,7 @@ const TRUST_BULLETS = [
   },
   {
     icon: ShieldCheck,
-    title: 'Encrypted &amp; private',
+    title: 'Encrypted & private',
     description: 'Your data is yours. Encrypted at rest and in transit, never shared.',
   },
 ];
@@ -32,7 +32,7 @@ export const AuthLayout = () => (
           </span>
           <span className="flex flex-col leading-tight">
             <span className="text-sm font-semibold text-text">{APP_NAME}</span>
-            <span className="text-2xs uppercase tracking-wider text-muted">Clinical AI</span>
+            <span className="text-2xs uppercase tracking-wider text-muted">{APP_KICKER}</span>
           </span>
         </Link>
         <ThemeToggle />
@@ -60,10 +60,7 @@ export const AuthLayout = () => (
                     <Icon aria-hidden="true" size={16} />
                   </span>
                   <div className="min-w-0">
-                    <p
-                      className="m-0 text-sm font-semibold text-text"
-                      dangerouslySetInnerHTML={{ __html: title }}
-                    />
+                    <p className="m-0 text-sm font-semibold text-text">{title}</p>
                     <p className="m-0 text-[13px] leading-relaxed text-muted">{description}</p>
                   </div>
                 </li>

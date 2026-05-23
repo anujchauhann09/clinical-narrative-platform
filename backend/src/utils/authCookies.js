@@ -11,6 +11,13 @@ const baseCookieOptions = (path, maxAge) => ({
 
 const accessCookiePath = env.API_PREFIX;
 const refreshCookiePath = `${env.API_PREFIX}/auth`;
+// CSRF cookie must be readable by frontend JS on every page route — not just
+// pages under /api/v1 — because the frontend lives at /, /dashboard, /profile,
+// etc. and reads document.cookie to mirror the value into the X-CSRF-Token
+// header. The browser only exposes cookies whose `path` prefixes the current
+// page URL, so this one has to be `/`. It's still SameSite=Strict + Secure-in-
+// prod, so a third-party page can't read it cross-site.
+const csrfCookiePath = '/';
 
 export const setAccessTokenCookie = (res, accessToken, maxAge) => {
   res.cookie(COOKIE_NAMES.ACCESS_TOKEN, accessToken, baseCookieOptions(accessCookiePath, maxAge));
@@ -25,11 +32,10 @@ export const setRefreshTokenCookie = (res, refreshToken, maxAge) => {
 };
 
 // CSRF cookie is intentionally NOT HttpOnly: the frontend JS reads it and
-// echoes it into an X-CSRF-Token header (double-submit cookie pattern). It
-// stays SameSite=Strict + Secure-in-prod so a third party can't read it.
+// echoes it into an X-CSRF-Token header (double-submit cookie pattern).
 export const setCsrfTokenCookie = (res, token, maxAge) => {
   res.cookie(COOKIE_NAMES.CSRF_TOKEN, token, {
-    ...baseCookieOptions(accessCookiePath, maxAge),
+    ...baseCookieOptions(csrfCookiePath, maxAge),
     httpOnly: false,
   });
 };
@@ -44,7 +50,7 @@ export const clearRefreshTokenCookie = (res) => {
 
 export const clearCsrfTokenCookie = (res) => {
   res.clearCookie(COOKIE_NAMES.CSRF_TOKEN, {
-    ...baseCookieOptions(accessCookiePath, 0),
+    ...baseCookieOptions(csrfCookiePath, 0),
     httpOnly: false,
   });
 };

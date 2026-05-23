@@ -1,4 +1,5 @@
-import { prisma } from '../database/prisma.js';
+import { narrativeRepository } from '../repositories/narrative.repository.js';
+import { userRepository } from '../repositories/user.repository.js';
 import { serializeSymptomEntry } from '../utils/symptomEntrySerializer.js';
 
 const RECENT_ENTRY_LIMIT = 10;
@@ -25,25 +26,9 @@ const formatSummary = (summary) => {
 export const copilotContextService = {
   async buildUserContext(userPublicId) {
     const [profile, rawEntries, summaries] = await Promise.all([
-      prisma.userProfile.findFirst({
-        where: { user: { publicId: userPublicId } },
-        select: { name: true, dateOfBirth: true, sex: true },
-      }),
-      prisma.symptomEntry.findMany({
-        where: { user: { publicId: userPublicId } },
-        orderBy: [{ loggedAt: 'desc' }, { id: 'desc' }],
-        take: RECENT_ENTRY_LIMIT,
-        include: {
-          symptoms: { include: { symptom: true } },
-          triggers: { include: { trigger: true } },
-        },
-      }),
-      prisma.aiSummary.findMany({
-        where: { user: { publicId: userPublicId } },
-        orderBy: [{ generatedAt: 'desc' }, { id: 'desc' }],
-        take: RECENT_SUMMARY_LIMIT,
-        select: { summaryType: true, content: true, generatedAt: true },
-      }),
+      userRepository.findProfileSummaryByUserPublicId(userPublicId),
+      narrativeRepository.listEntriesForWindow({ userPublicId, limit: RECENT_ENTRY_LIMIT }),
+      narrativeRepository.listSummariesForUser({ userPublicId, limit: RECENT_SUMMARY_LIMIT }),
     ]);
 
     const entries = rawEntries.map(serializeSymptomEntry);

@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "version": "1.0.0",
-  "description": "Frontend for the Clinical Narrative Platform.",
+  "description": "SymptIQ frontend — Clinical Narrative Platform for AI-Powered Symptom Intelligence.",
   "type": "module",
   "main": "src/main.jsx",
   "scripts": {

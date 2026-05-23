@@ -5,32 +5,15 @@ import { userRepository } from '../repositories/user.repository.js';
 import { pdfClient } from '../pdf/pdfClient.js';
 import { renderClinicalReportHtml } from '../pdf/templates/clinicalReport.template.js';
 import { serializeAiSummary, SUMMARY_TYPES } from '../utils/aiSummarySerializer.js';
+import { resolveDateWindow } from '../utils/dateWindow.js';
 import { serializeSymptomEntry } from '../utils/symptomEntrySerializer.js';
 import { insightsService } from './insights.service.js';
 
 const DEFAULT_WINDOW_DAYS = 60;
 const MAX_TIMELINE_ROWS = 200;
 
-const daysAgo = (days) => {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() - days);
-  return date;
-};
-
 const round = (value, places = 1) =>
   value === null || value === undefined || Number.isNaN(value) ? null : Number(value.toFixed(places));
-
-const resolveWindow = ({ from, to } = {}) => {
-  const resolvedTo = to ? new Date(to) : new Date();
-  const resolvedFrom = from ? new Date(from) : daysAgo(DEFAULT_WINDOW_DAYS);
-  if (Number.isNaN(resolvedFrom.getTime()) || Number.isNaN(resolvedTo.getTime())) {
-    throw new ApiError('Invalid date in `from`/`to`', HTTP_STATUS.BAD_REQUEST);
-  }
-  if (resolvedFrom > resolvedTo) {
-    throw new ApiError('`from` must be earlier than or equal to `to`', HTTP_STATUS.BAD_REQUEST);
-  }
-  return { from: resolvedFrom, to: resolvedTo };
-};
 
 const computeWindowSummary = (entries) => {
   if (!entries.length) {
@@ -66,7 +49,7 @@ export const clinicalReportService = {
       throw new ApiError('Patient not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    const window = resolveWindow(query);
+    const window = resolveDateWindow({ ...query, defaultDays: DEFAULT_WINDOW_DAYS });
 
     const [rawEntries, insightsData, rawSummaries] = await Promise.all([
       narrativeRepository.listEntriesForWindow({

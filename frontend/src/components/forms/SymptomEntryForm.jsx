@@ -6,10 +6,19 @@ import { symptomEntrySchema } from '../../validators/symptomEntry.validator.js';
 import { ChipMultiSelect } from './ChipGroup.jsx';
 import { SeveritySlider } from './SeveritySlider.jsx';
 
+// Format a Date (or ISO string) as the literal `YYYY-MM-DDTHH:mm` string that
+// `<input type="datetime-local">` expects. We read the parts directly from
+// the Date's local getters — never doing offset arithmetic — so a DST
+// transition between "load" and "submit" can't shift the value by an hour.
+const pad = (value) => String(value).padStart(2, '0');
+
 const toLocalInput = (isoString) => {
   const date = isoString ? new Date(isoString) : new Date();
-  const offset = date.getTimezoneOffset() * 60_000;
-  return new Date(date.getTime() - offset).toISOString().slice(0, 16);
+  if (Number.isNaN(date.getTime())) return '';
+  return (
+    `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}` +
+    `T${pad(date.getHours())}:${pad(date.getMinutes())}`
+  );
 };
 
 const buildDefaultValues = (entry) => ({

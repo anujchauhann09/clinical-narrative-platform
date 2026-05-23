@@ -1,3 +1,4 @@
+import { APP_NAME, APP_TAGLINE } from '../../constants/branding.js';
 import { renderSeverityChartSvg, renderTriggerBarChartSvg } from '../charts/severityChart.js';
 
 const escapeHtml = (value) =>
@@ -224,7 +225,7 @@ export const renderClinicalReportHtml = ({
 <body>
   <div class="report">
     <header class="cover">
-      <p class="cover__eyebrow">Clinical Narrative Platform</p>
+      <p class="cover__eyebrow">${escapeHtml(APP_NAME)} · ${escapeHtml(APP_TAGLINE)}</p>
       <h1 class="cover__title">Clinical Report</h1>
       <p class="cover__subtitle">
         ${escapeHtml(fullName)} · Generated ${escapeHtml(formatDateTime(generatedAt))}<br/>
@@ -312,7 +313,7 @@ export const renderClinicalReportHtml = ({
     </section>
 
     <p class="disclaimer">
-      This report is generated from patient-reported data and AI-assisted summaries on the Clinical Narrative Platform.
+      This report is generated from patient-reported data and AI-assisted summaries on ${escapeHtml(APP_NAME)}.
       It is not a medical diagnosis and does not replace evaluation by a licensed clinician. Always discuss findings
       with your healthcare provider before making clinical decisions.
     </p>

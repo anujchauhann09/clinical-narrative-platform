@@ -1,32 +1,36 @@
 import { createBrowserRouter } from 'react-router-dom';
 
-import { AuthLayout } from '../layouts/AuthLayout.jsx';
 import { AppLayout } from '../layouts/AppLayout.jsx';
+import { AuthLayout } from '../layouts/AuthLayout.jsx';
 import { PublicLayout } from '../layouts/PublicLayout.jsx';
-import { DashboardPage } from '../pages/DashboardPage.jsx';
-import { InsightsPage } from '../pages/InsightsPage.jsx';
-import { LoginPage } from '../pages/LoginPage.jsx';
-import { NarrativesPage } from '../pages/NarrativesPage.jsx';
-import { ReportsPage } from '../pages/ReportsPage.jsx';
-import { NotFoundPage } from '../pages/NotFoundPage.jsx';
-import { ProfilePage } from '../pages/ProfilePage.jsx';
-import { SettingsPage } from '../pages/SettingsPage.jsx';
-import { SignupPage } from '../pages/SignupPage.jsx';
-import { TimelinePage } from '../pages/TimelinePage.jsx';
-import { LandingPage } from '../pages/LandingPage.jsx';
-import { AboutPage } from '../pages/AboutPage.jsx';
-import { PrivacyPage } from '../pages/PrivacyPage.jsx';
 import { ProtectedRoute } from './ProtectedRoute.jsx';
 import { PublicOnlyRoute } from './PublicOnlyRoute.jsx';
+import { RouteErrorElement } from './RouteErrorElement.jsx';
 import { ROUTES } from '../constants/app.js';
+
+const errorElement = <RouteErrorElement />;
+
+// Pages are loaded on demand via react-router's `lazy` so a first-time visitor
+// to /dashboard doesn't download the code for Timeline, Insights, Narratives,
+// Reports, Profile, and Settings up front. Vite turns each `import('…')` into
+// its own JS chunk automatically. Layouts stay eager because every page needs
+// them and they're tiny.
+const lazyRoute = (path, importer, exportName) => ({
+  path,
+  lazy: async () => {
+    const mod = await importer();
+    return { Component: mod[exportName] };
+  },
+});
 
 export const router = createBrowserRouter([
   {
     element: <PublicLayout />,
+    errorElement,
     children: [
-      { path: ROUTES.HOME, element: <LandingPage /> },
-      { path: ROUTES.ABOUT, element: <AboutPage /> },
-      { path: ROUTES.PRIVACY, element: <PrivacyPage /> },
+      lazyRoute(ROUTES.HOME, () => import('../pages/LandingPage.jsx'), 'LandingPage'),
+      lazyRoute(ROUTES.ABOUT, () => import('../pages/AboutPage.jsx'), 'AboutPage'),
+      lazyRoute(ROUTES.PRIVACY, () => import('../pages/PrivacyPage.jsx'), 'PrivacyPage'),
     ],
   },
   {
@@ -34,9 +38,10 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AuthLayout />,
+        errorElement,
         children: [
-          { path: ROUTES.LOGIN, element: <LoginPage /> },
-          { path: ROUTES.SIGNUP, element: <SignupPage /> },
+          lazyRoute(ROUTES.LOGIN, () => import('../pages/LoginPage.jsx'), 'LoginPage'),
+          lazyRoute(ROUTES.SIGNUP, () => import('../pages/SignupPage.jsx'), 'SignupPage'),
         ],
       },
     ],
@@ -46,21 +51,24 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        errorElement: <NotFoundPage />,
+        errorElement,
         children: [
-          { path: ROUTES.DASHBOARD, element: <DashboardPage /> },
-          { path: ROUTES.TIMELINE, element: <TimelinePage /> },
-          { path: ROUTES.INSIGHTS, element: <InsightsPage /> },
-          { path: ROUTES.NARRATIVES, element: <NarrativesPage /> },
-          { path: ROUTES.REPORTS, element: <ReportsPage /> },
-          { path: ROUTES.PROFILE, element: <ProfilePage /> },
-          { path: ROUTES.SETTINGS, element: <SettingsPage /> },
+          lazyRoute(ROUTES.DASHBOARD, () => import('../pages/DashboardPage.jsx'), 'DashboardPage'),
+          lazyRoute(ROUTES.TIMELINE, () => import('../pages/TimelinePage.jsx'), 'TimelinePage'),
+          lazyRoute(ROUTES.INSIGHTS, () => import('../pages/InsightsPage.jsx'), 'InsightsPage'),
+          lazyRoute(ROUTES.NARRATIVES, () => import('../pages/NarrativesPage.jsx'), 'NarrativesPage'),
+          lazyRoute(ROUTES.REPORTS, () => import('../pages/ReportsPage.jsx'), 'ReportsPage'),
+          lazyRoute(ROUTES.PROFILE, () => import('../pages/ProfilePage.jsx'), 'ProfilePage'),
+          lazyRoute(ROUTES.SETTINGS, () => import('../pages/SettingsPage.jsx'), 'SettingsPage'),
         ],
       },
     ],
   },
   {
     path: '*',
-    element: <NotFoundPage />,
+    lazy: async () => {
+      const { NotFoundPage } = await import('../pages/NotFoundPage.jsx');
+      return { Component: NotFoundPage };
+    },
   },
 ]);

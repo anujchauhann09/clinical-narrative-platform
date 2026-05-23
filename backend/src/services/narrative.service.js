@@ -8,6 +8,7 @@ import {
 import { HTTP_STATUS } from '../constants/httpStatus.js';
 import { ApiError } from '../errors/index.js';
 import { narrativeRepository } from '../repositories/narrative.repository.js';
+import { resolveDateWindow } from '../utils/dateWindow.js';
 import { serializeSymptomEntry } from '../utils/symptomEntrySerializer.js';
 import { SUMMARY_TYPES, serializeAiSummary } from '../utils/aiSummarySerializer.js';
 import { insightsService } from './insights.service.js';
@@ -16,25 +17,8 @@ const MIN_ENTRIES_FOR_NARRATIVE = 3;
 const DEFAULT_WINDOW_DAYS = 30;
 const DOCTOR_SUMMARY_WINDOW_DAYS = 60;
 
-const daysAgo = (days) => {
-  const date = new Date();
-  date.setUTCDate(date.getUTCDate() - days);
-  return date;
-};
-
-const resolveWindow = ({ from, to, defaultDays }) => {
-  const resolvedTo = to ? new Date(to) : new Date();
-  const resolvedFrom = from ? new Date(from) : daysAgo(defaultDays);
-
-  if (resolvedFrom > resolvedTo) {
-    throw new ApiError('`from` must be earlier than or equal to `to`', HTTP_STATUS.BAD_REQUEST);
-  }
-
-  return { from: resolvedFrom, to: resolvedTo };
-};
-
 const loadEntries = async ({ userPublicId, from, to, defaultDays, limit }) => {
-  const window = resolveWindow({ from, to, defaultDays });
+  const window = resolveDateWindow({ from, to, defaultDays });
   const rawEntries = await narrativeRepository.listEntriesForWindow({
     userPublicId,
     from: window.from,

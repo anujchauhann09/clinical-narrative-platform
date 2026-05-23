@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Backend API for the Clinical Narrative Platform.",
+  "description": "SymptIQ backend — Clinical Narrative Platform for AI-Powered Symptom Intelligence.",
   "type": "module",
   "main": "src/server.js",
   "directories": {

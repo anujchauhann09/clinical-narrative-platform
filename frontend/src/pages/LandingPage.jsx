@@ -13,7 +13,7 @@ import { Link } from 'react-router-dom';
 
 import { Button } from '../components/common/Button.jsx';
 import { Card } from '../components/common/Card.jsx';
-import { ROUTES } from '../constants/app.js';
+import { APP_NAME, ROUTES } from '../constants/app.js';
 import { pageFadeRise, staggerContainer, staggerItem } from '../services/motions.js';
 import { useAuthStore } from '../store/authStore.js';
 
@@ -65,7 +65,7 @@ export const LandingPage = () => {
           className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium text-primary-strong"
           {...pageFadeRise}
         >
-          <Sparkles aria-hidden="true" size={12} /> The future of medical records
+          <Sparkles aria-hidden="true" size={12} /> {APP_NAME} · AI-Powered Symptom Intelligence
         </motion.span>
         <motion.h1
           className="mt-5 max-w-3xl text-[32px] font-semibold tracking-tight text-text sm:text-4xl md:text-5xl lg:text-[56px] lg:leading-[1.05]"
@@ -79,8 +79,9 @@ export const LandingPage = () => {
           {...pageFadeRise}
           transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1], delay: 0.1 }}
         >
-          Track symptoms, surface patterns, and generate doctor-ready summaries — all in a fast,
-          premium, AI-assisted workspace built for healthcare.
+          {APP_NAME} is a clinical narrative platform for AI-powered symptom intelligence. Track
+          symptoms, surface patterns, and generate doctor-ready summaries in a fast,
+          premium workspace built for healthcare.
         </motion.p>
         <motion.div
           className="mt-7 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:gap-3"

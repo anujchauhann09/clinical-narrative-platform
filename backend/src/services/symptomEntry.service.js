@@ -68,16 +68,19 @@ export const symptomEntryService = {
   },
 
   async createEntry(userPublicId, payload) {
-    const symptomIds = await resolvePublicIds({
-      repository: symptomRepository,
-      publicIds: payload.symptomIds,
-      label: 'symptom',
-    });
-    const triggerIds = await resolvePublicIds({
-      repository: triggerRepository,
-      publicIds: payload.triggerIds ?? [],
-      label: 'trigger',
-    });
+    // Independent lookups — fire them in parallel to halve round-trip latency.
+    const [symptomIds, triggerIds] = await Promise.all([
+      resolvePublicIds({
+        repository: symptomRepository,
+        publicIds: payload.symptomIds,
+        label: 'symptom',
+      }),
+      resolvePublicIds({
+        repository: triggerRepository,
+        publicIds: payload.triggerIds ?? [],
+        label: 'trigger',
+      }),
+    ]);
 
     const entry = await symptomEntryRepository.create({
       userPublicId,
@@ -125,20 +128,24 @@ export const symptomEntryService = {
   async updateEntry(userPublicId, publicId, payload) {
     const entryId = await assertEntryOwnership(userPublicId, publicId);
 
-    const symptomIds = payload.symptomIds
-      ? await resolvePublicIds({
-          repository: symptomRepository,
-          publicIds: payload.symptomIds,
-          label: 'symptom',
-        })
-      : undefined;
-    const triggerIds = payload.triggerIds
-      ? await resolvePublicIds({
-          repository: triggerRepository,
-          publicIds: payload.triggerIds,
-          label: 'trigger',
-        })
-      : undefined;
+    // Same parallelization rationale as createEntry. `undefined` paths skip
+    // the network call entirely; only the present sides actually hit the DB.
+    const [symptomIds, triggerIds] = await Promise.all([
+      payload.symptomIds
+        ? resolvePublicIds({
+            repository: symptomRepository,
+            publicIds: payload.symptomIds,
+            label: 'symptom',
+          })
+        : Promise.resolve(undefined),
+      payload.triggerIds
+        ? resolvePublicIds({
+            repository: triggerRepository,
+            publicIds: payload.triggerIds,
+            label: 'trigger',
+          })
+        : Promise.resolve(undefined),
+    ]);
 
     const updated = await symptomEntryRepository.update({
       id: entryId,

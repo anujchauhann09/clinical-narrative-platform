@@ -18,7 +18,10 @@ import { Card } from '../components/common/Card.jsx';
 import { Input } from '../components/common/Input.jsx';
 import { Container, PageHeader } from '../components/layout/PageHeader.jsx';
 import { useToast } from '../context/ToastContext.jsx';
+import { dateService } from '../services/dateService.js';
 import { pageFadeRise, staggerContainer, staggerItem } from '../services/motions.js';
+
+const DEFAULT_WINDOW_DAYS = 60;
 
 const SECTIONS = [
   {
@@ -48,37 +51,10 @@ const SECTIONS = [
   },
 ];
 
-const toIsoStartOfDay = (yyyyMmDd) => {
-  if (!yyyyMmDd) return undefined;
-  const date = new Date(`${yyyyMmDd}T00:00:00`);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
-};
-
-const toIsoEndOfDay = (yyyyMmDd) => {
-  if (!yyyyMmDd) return undefined;
-  const date = new Date(`${yyyyMmDd}T23:59:59.999`);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
-};
-
-const todayYyyyMmDd = () => {
-  const date = new Date();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-};
-
-const sixtyDaysAgoYyyyMmDd = () => {
-  const date = new Date();
-  date.setDate(date.getDate() - 60);
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${month}-${day}`;
-};
-
 export const ReportsPage = () => {
   const { showToast } = useToast();
-  const todayMax = useMemo(todayYyyyMmDd, []);
-  const defaultFrom = useMemo(sixtyDaysAgoYyyyMmDd, []);
+  const todayMax = useMemo(() => dateService.todayYyyyMmDd(), []);
+  const defaultFrom = useMemo(() => dateService.daysAgoYyyyMmDd(DEFAULT_WINDOW_DAYS), []);
   const [fromDate, setFromDate] = useState(defaultFrom);
   const [toDate, setToDate] = useState(todayMax);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -89,7 +65,7 @@ export const ReportsPage = () => {
     const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = objectUrl;
-    link.download = `clinical-report-${todayYyyyMmDd()}.pdf`;
+    link.download = `clinical-report-${dateService.todayYyyyMmDd()}.pdf`;
     document.body.appendChild(link);
     link.click();
     link.remove();
@@ -104,8 +80,8 @@ export const ReportsPage = () => {
     setIsDownloading(true);
     try {
       const blob = await clinicalReportApi.downloadClinicalReport({
-        from: toIsoStartOfDay(fromDate),
-        to: toIsoEndOfDay(toDate),
+        from: dateService.toIsoStartOfDay(fromDate),
+        to: dateService.toIsoEndOfDay(toDate),
       });
       triggerBrowserDownload(blob);
       showToast({ tone: 'success', message: 'Clinical PDF downloaded' });

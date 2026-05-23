@@ -13,7 +13,7 @@ export const CopilotFab = () => {
     <>
       <CopilotChat />
       <button
-        aria-label={isOpen ? 'Close Clinical Copilot' : 'Open Clinical Copilot'}
+        aria-label={isOpen ? 'Close SymptIQ Copilot' : 'Open SymptIQ Copilot'}
         aria-pressed={isOpen}
         className={cn(
           'fixed bottom-5 right-5 z-50 grid h-14 w-14 place-items-center rounded-full text-white shadow-elevated',

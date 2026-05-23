@@ -2,12 +2,9 @@ import axios from 'axios';
 
 import { API_TIMEOUT_MS } from '../constants/app.js';
 import { useAuthStore } from '../store/authStore.js';
+import { toFriendlyMessage } from './errorMessages.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
-
-// CSRF: the backend sets a non-HttpOnly `csrfToken` cookie on login/refresh.
-// We mirror it into the X-CSRF-Token header on every unsafe request
-// (double-submit cookie pattern). On safe methods the backend skips the check.
 const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
 
 const readCsrfCookie = () => {
@@ -18,10 +15,6 @@ const readCsrfCookie = () => {
   return match ? decodeURIComponent(match.slice('csrfToken='.length)) : null;
 };
 
-// Auth endpoints that should NOT trigger an automatic refresh on 401.
-//   - login / signup: 401 means bad credentials, not an expired session.
-//   - refresh: would recurse and mask the real reason the refresh failed.
-//   - logout: 401 is irrelevant; we're tearing the session down anyway.
 const REFRESH_SKIP_PREFIXES = ['/auth/login', '/auth/signup', '/auth/refresh', '/auth/logout'];
 
 export const apiClient = axios.create({
@@ -75,18 +68,19 @@ apiClient.interceptors.response.use(
         await performRefresh();
         return apiClient(originalRequest);
       } catch (_refreshError) {
-        // Refresh failed too: the session is unrecoverable. Wipe local state so
-        // ProtectedRoute redirects to login. The cookies are already cleared
-        // server-side by /auth/refresh on its 401 path.
         useAuthStore.getState().clearSession();
       }
     }
 
     const responseData = error.response?.data;
     const isBlobBody = typeof Blob !== 'undefined' && responseData instanceof Blob;
-    const message = isBlobBody
-      ? error.message ?? 'Something went wrong. Please try again.'
-      : responseData?.message ?? error.message ?? 'Something went wrong. Please try again.';
+    const serverMessage = isBlobBody ? undefined : responseData?.message;
+
+    const message = toFriendlyMessage({
+      status,
+      serverMessage,
+      axiosError: error,
+    });
 
     return Promise.reject({
       message,

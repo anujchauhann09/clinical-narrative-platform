@@ -125,7 +125,7 @@ export const CopilotChat = () => {
     <AnimatePresence>
       {isOpen ? (
         <motion.section
-          aria-label="Clinical Copilot"
+          aria-label="SymptIQ Copilot"
           className="fixed bottom-24 right-4 z-50 flex h-[min(640px,calc(100vh-7rem))] w-[min(420px,calc(100vw-2rem))] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-elevated"
           {...drawerMotion}
         >
@@ -135,7 +135,7 @@ export const CopilotChat = () => {
                 <Sparkles aria-hidden="true" size={16} />
               </span>
               <div className="min-w-0">
-                <h2 className="m-0 text-sm font-semibold tracking-tight">Clinical Copilot</h2>
+                <h2 className="m-0 text-sm font-semibold tracking-tight">SymptIQ Copilot</h2>
                 <p className="m-0 text-[11px] leading-tight text-white/80">
                   Healthcare-only assistant — not a substitute for a clinician.
                 </p>

@@ -1,6 +1,7 @@
 import { getPineconeIndex, isPineconeConfigured } from '../config/pinecone.js';
 import { HTTP_STATUS } from '../constants/httpStatus.js';
 import { ApiError } from '../errors/index.js';
+import { chunkArray } from '../utils/arrayChunk.js';
 import { logger } from '../utils/logger.js';
 
 const UPSERT_BATCH = 100;
@@ -15,14 +16,6 @@ const ensureConfigured = () => {
 };
 
 const namespaceFor = (userPublicId) => `user-${userPublicId}`;
-
-const chunkArray = (array, size) => {
-  const out = [];
-  for (let i = 0; i < array.length; i += size) {
-    out.push(array.slice(i, i + size));
-  }
-  return out;
-};
 
 export const vectorStoreService = {
   namespaceFor,
