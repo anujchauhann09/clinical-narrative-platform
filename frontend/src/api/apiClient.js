@@ -5,6 +5,19 @@ import { useAuthStore } from '../store/authStore.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? '/api/v1';
 
+// CSRF: the backend sets a non-HttpOnly `csrfToken` cookie on login/refresh.
+// We mirror it into the X-CSRF-Token header on every unsafe request
+// (double-submit cookie pattern). On safe methods the backend skips the check.
+const UNSAFE_METHODS = new Set(['post', 'put', 'patch', 'delete']);
+
+const readCsrfCookie = () => {
+  if (typeof document === 'undefined') return null;
+  const match = document.cookie
+    .split('; ')
+    .find((part) => part.startsWith('csrfToken='));
+  return match ? decodeURIComponent(match.slice('csrfToken='.length)) : null;
+};
+
 // Auth endpoints that should NOT trigger an automatic refresh on 401.
 //   - login / signup: 401 means bad credentials, not an expired session.
 //   - refresh: would recurse and mask the real reason the refresh failed.
@@ -16,6 +29,18 @@ export const apiClient = axios.create({
   timeout: API_TIMEOUT_MS,
   headers: { 'Content-Type': 'application/json' },
   withCredentials: true,
+});
+
+apiClient.interceptors.request.use((config) => {
+  const method = (config.method ?? 'get').toLowerCase();
+  if (UNSAFE_METHODS.has(method)) {
+    const token = readCsrfCookie();
+    if (token) {
+      config.headers = config.headers ?? {};
+      config.headers['X-CSRF-Token'] = token;
+    }
+  }
+  return config;
 });
 
 // Single in-flight refresh. Concurrent 401s share the same network call.

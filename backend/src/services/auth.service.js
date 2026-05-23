@@ -3,10 +3,16 @@ import { ApiError, AuthError } from '../errors/index.js';
 import { refreshTokenRepository } from '../repositories/refreshToken.repository.js';
 import { userRepository } from '../repositories/user.repository.js';
 import { hashToken } from '../utils/hashToken.js';
+import { logger } from '../utils/logger.js';
 import { serializeUser } from '../utils/userSerializer.js';
 import { passwordService } from './password.service.js';
 import { sessionService } from './session.service.js';
 import { tokenService } from './token.service.js';
+
+// Per-account lockout policy. Held here (not in env) for now since these are
+// security parameters we'd rather change via code review than via runtime config.
+const LOCKOUT_THRESHOLD = 5;
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 export const authService = {
   async signup({ email, name, password }) {
@@ -25,16 +31,36 @@ export const authService = {
   async login({ email, password }) {
     const user = await userRepository.findByEmail(email);
 
+    // We always compare a password (real or dummy) to keep response timing
+    // consistent between "user does not exist" and "wrong password", and to
+    // avoid an account-existence oracle.
     if (!user) {
+      await passwordService.comparePassword(password, '$2b$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvali');
       throw new AuthError('Invalid email or password');
+    }
+
+    if (user.lockedUntil && user.lockedUntil > new Date()) {
+      const minutesLeft = Math.max(
+        1,
+        Math.ceil((user.lockedUntil.getTime() - Date.now()) / 60_000),
+      );
+      throw new AuthError(
+        `Account locked due to repeated failed sign-ins. Try again in about ${minutesLeft} minute${minutesLeft === 1 ? '' : 's'}.`,
+      );
     }
 
     const isPasswordValid = await passwordService.comparePassword(password, user.passwordHash);
 
     if (!isPasswordValid) {
+      const { failedLoginAttempts } = await userRepository.incrementFailedAttempts(user.id);
+      if (failedLoginAttempts >= LOCKOUT_THRESHOLD) {
+        await userRepository.lockAccountUntil(user.id, new Date(Date.now() + LOCKOUT_DURATION_MS));
+        logger.warn({ userId: user.publicId }, 'Account locked after repeated failed sign-ins');
+      }
       throw new AuthError('Invalid email or password');
     }
 
+    await userRepository.recordSuccessfulLogin(user.id);
     return sessionService.createSession(user);
   },
 

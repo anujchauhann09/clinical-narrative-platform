@@ -7,6 +7,7 @@ import {
   DOCUMENT_STATUS,
 } from '../repositories/copilotDocument.repository.js';
 import { logger } from '../utils/logger.js';
+import { sanitizeFilename, verifyDocumentFileType } from '../utils/uploadGuards.js';
 import { documentExtractionService } from './documentExtraction.service.js';
 import { textChunkerService } from './textChunker.service.js';
 import { vectorStoreService } from './vectorStore.service.js';
@@ -88,6 +89,15 @@ export const copilotIngestionService = {
         HTTP_STATUS.PAYLOAD_TOO_LARGE,
       );
     }
+
+    // Authoritative content-based MIME check (client headers are untrusted).
+    const safeFilename = sanitizeFilename(file.originalname);
+    const verifiedMime = verifyDocumentFileType({
+      buffer: file.buffer,
+      declaredMime: file.mimetype,
+      filename: safeFilename,
+    });
+
     if (!vectorStoreService.isConfigured()) {
       throw new ApiError(
         'AI Copilot is not available right now. Vector storage is not configured.',
@@ -97,8 +107,8 @@ export const copilotIngestionService = {
 
     const document = await copilotDocumentRepository.createForUser({
       userPublicId,
-      filename: file.originalname,
-      mimeType: file.mimetype,
+      filename: safeFilename,
+      mimeType: verifiedMime,
       byteSize: file.size,
     });
     if (!document) {

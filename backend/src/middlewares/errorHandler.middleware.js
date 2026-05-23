@@ -32,14 +32,20 @@ const normalizeError = (error) => {
 export const errorHandler = (error, req, res, _next) => {
   const normalizedError = normalizeError(error);
 
-  logger.error(
-    {
-      err: error,
-      requestId: req.id,
-      statusCode: normalizedError.statusCode,
-    },
-    normalizedError.message,
-  );
+  const logPayload = {
+    err: error,
+    requestId: req.id,
+    statusCode: normalizedError.statusCode,
+  };
+
+  // 5xx is our problem (bugs, upstream failures) — log as error so it lands
+  // in the persistent error file. 4xx is operational (auth/validation) and
+  // stays at warn so the error file doesn't get polluted with noise.
+  if (normalizedError.statusCode >= 500) {
+    logger.error(logPayload, normalizedError.message);
+  } else {
+    logger.warn(logPayload, normalizedError.message);
+  }
 
   res.status(normalizedError.statusCode).json(
     ApiResponse.error({
