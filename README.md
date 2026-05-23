@@ -158,7 +158,7 @@ The app deploys as two independent services: a Node API and a static SPA. Tested
 
 ### Backend
 
-1. **Build command** — `npm ci && npx prisma generate && npx prisma migrate deploy`
+1. **Build command** — `npm ci && npx puppeteer browsers install chrome && npx prisma generate && npx prisma migrate deploy && npm run db:seed`
 2. **Start command** — `npm start`
 3. **Required env vars** — everything from `.env.example`, plus:
    - `NODE_ENV=production` — **must be set** (controls cookie `Secure`/`SameSite`)
