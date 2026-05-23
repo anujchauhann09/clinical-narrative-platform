@@ -5,7 +5,8 @@ import { auditService, AUDIT_ACTIONS } from '../services/audit.service.js';
 import { ApiResponse } from '../utils/apiResponse.js';
 import { sendAuthSession } from '../utils/authResponse.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { clearAuthCookies } from '../utils/authCookies.js';
+import { clearAuthCookies, setCsrfTokenCookie } from '../utils/authCookies.js';
+import { generateCsrfToken } from '../utils/csrf.js';
 
 export const signup = asyncHandler(async (req, res) => {
   const user = await authService.signup(req.validated.body);
@@ -62,13 +63,21 @@ export const logout = asyncHandler(async (req, res) => {
   );
 });
 
+const CSRF_REFRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 export const getMe = asyncHandler(async (req, res) => {
   const user = await authService.getCurrentUser(req.auth.sub);
+
+  let csrfToken = req.cookies?.[COOKIE_NAMES.CSRF_TOKEN];
+  if (!csrfToken) {
+    csrfToken = generateCsrfToken();
+    setCsrfTokenCookie(req, res, csrfToken, CSRF_REFRESH_TTL_MS);
+  }
 
   res.status(HTTP_STATUS.OK).json(
     ApiResponse.success({
       message: 'Authenticated user fetched',
-      data: { user },
+      data: { user, csrfToken },
     }),
   );
 });

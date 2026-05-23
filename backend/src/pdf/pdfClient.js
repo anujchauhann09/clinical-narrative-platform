@@ -1,4 +1,4 @@
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 
 import { env } from '../config/env.js';
 import { HTTP_STATUS } from '../constants/httpStatus.js';
@@ -13,8 +13,7 @@ let browserPromise = null;
 
 const launchBrowser = async () => {
   try {
-    return await puppeteer.launch({
-      executablePath: env.CHROME_EXECUTABLE_PATH,
+    const launchOptions = {
       headless: true,
       args: [
         '--no-sandbox',
@@ -22,11 +21,18 @@ const launchBrowser = async () => {
         '--disable-dev-shm-usage',
         '--font-render-hinting=none',
       ],
-    });
+    };
+    if (env.CHROME_EXECUTABLE_PATH) {
+      launchOptions.executablePath = env.CHROME_EXECUTABLE_PATH;
+    }
+    return await puppeteer.launch(launchOptions);
   } catch (error) {
-    logger.error({ err: error, executablePath: env.CHROME_EXECUTABLE_PATH }, 'Failed to launch Chrome');
+    logger.error(
+      { err: error, executablePath: env.CHROME_EXECUTABLE_PATH ?? '(bundled)' },
+      'Failed to launch Chrome',
+    );
     throw new ApiError(
-      `Failed to launch headless browser. Verify CHROME_EXECUTABLE_PATH is correct (${env.CHROME_EXECUTABLE_PATH}).`,
+      'Failed to launch headless browser. Ensure puppeteer Chromium downloaded during install, or set CHROME_EXECUTABLE_PATH to a valid Chrome binary.',
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
     );
   }

@@ -24,7 +24,8 @@ const envSchema = z.object({
   COPILOT_CHUNK_OVERLAP: z.coerce.number().int().nonnegative().default(180),
   COPILOT_TOP_K: z.coerce.number().int().positive().default(6),
   COPILOT_EMBEDDING_BATCH: z.coerce.number().int().positive().default(16),
-  CHROME_EXECUTABLE_PATH: z.string().min(1).default('/usr/bin/google-chrome'),
+  // Optional override. When unset, puppeteer uses its bundled Chromium.
+  CHROME_EXECUTABLE_PATH: z.string().min(1).optional(),
   UPLOAD_DIR: z.string().min(1).default('uploads'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace', 'silent']).default('info'),
 });
