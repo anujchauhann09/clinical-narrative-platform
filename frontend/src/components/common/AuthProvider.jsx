@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   if (isInitializing) {
     return (
       <div className="flex h-screen w-screen items-center justify-center bg-bg">
-        <Loader label="Restoring session" size={22} />
+        <Loader label="Just a moment..." size={22} />
       </div>
     );
   }

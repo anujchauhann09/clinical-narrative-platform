@@ -172,6 +172,11 @@ The app deploys as two independent services: a Node API and a static SPA. Tested
 2. **Publish directory** — `dist`
 3. **Env vars** (set at build time — Vite inlines them):
    - `VITE_API_BASE_URL=https://your-backend-domain/api/v1`
+4. **SPA fallback** — the app uses HTML5 history routing, so the host must serve
+   `index.html` for every path; otherwise a direct hit or reload on a deep link
+   (e.g. `/dashboard`) returns the host's own 404 instead of the app.
+   - **Vercel** — `frontend/vercel.json` already does this (rewrites `/(.*)` → `/index.html`).
+   - **Render / static hosts** — add a rewrite rule: source `/*` → destination `/index.html` (status 200).
 
 ### Cross-origin checklist
 
