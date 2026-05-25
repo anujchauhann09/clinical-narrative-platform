@@ -2,14 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 
 import { Button } from '../common/Button.jsx';
 import { Input, Textarea } from '../common/Input.jsx';
+import { dateService } from '../../services/dateService.js';
 import { symptomEntrySchema } from '../../validators/symptomEntry.validator.js';
 import { ChipMultiSelect } from './ChipGroup.jsx';
 import { SeveritySlider } from './SeveritySlider.jsx';
 
-// Format a Date (or ISO string) as the literal `YYYY-MM-DDTHH:mm` string that
-// `<input type="datetime-local">` expects. We read the parts directly from
-// the Date's local getters — never doing offset arithmetic — so a DST
-// transition between "load" and "submit" can't shift the value by an hour.
+
 const pad = (value) => String(value).padStart(2, '0');
 
 const toLocalInput = (isoString) => {
@@ -45,6 +43,7 @@ export const SymptomEntryForm = ({
 }) => {
   const [values, setValues] = useState(() => buildDefaultValues(entry));
   const [validationError, setValidationError] = useState(null);
+  const maxLoggedAt = useMemo(() => dateService.nowDatetimeLocal(), []);
 
   useEffect(() => {
     setValues(buildDefaultValues(entry));
@@ -86,6 +85,7 @@ export const SymptomEntryForm = ({
         <div className="grid gap-4 md:grid-cols-2">
           <Input
             label="When did this happen?"
+            max={maxLoggedAt}
             onChange={(event) => updateField('loggedAt', event.target.value)}
             required
             type="datetime-local"

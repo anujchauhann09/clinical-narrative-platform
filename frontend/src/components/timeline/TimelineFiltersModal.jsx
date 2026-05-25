@@ -4,6 +4,7 @@ import { Button } from '../common/Button.jsx';
 import { Input } from '../common/Input.jsx';
 import { Modal } from '../common/Modal.jsx';
 import { ChipMultiSelect } from '../forms/ChipGroup.jsx';
+import { dateService } from '../../services/dateService.js';
 
 const toLocalInput = (isoString) => {
   if (!isoString) return '';
@@ -34,6 +35,7 @@ export const TimelineFiltersModal = ({
 }) => {
   const [draft, setDraft] = useState(() => buildDraft(filters));
   const [validationError, setValidationError] = useState(null);
+  const maxDateTime = useMemo(() => dateService.nowDatetimeLocal(), []);
 
   useEffect(() => {
     if (isOpen) {
@@ -123,12 +125,14 @@ export const TimelineFiltersModal = ({
         <div className="grid gap-3 md:grid-cols-2">
           <Input
             label="From"
+            max={maxDateTime}
             onChange={(event) => updateField('from', event.target.value)}
             type="datetime-local"
             value={draft.from}
           />
           <Input
             label="To"
+            max={maxDateTime}
             onChange={(event) => updateField('to', event.target.value)}
             type="datetime-local"
             value={draft.to}

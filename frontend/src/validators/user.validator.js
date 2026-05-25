@@ -13,6 +13,10 @@ export const updateProfileSchema = z.object({
       z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/, 'Use YYYY-MM-DD')
+        .refine(
+          (value) => new Date(`${value}T00:00:00`) <= new Date(),
+          'Date of birth cannot be in the future',
+        )
         .nullable(),
     )
     .optional(),

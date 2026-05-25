@@ -2,6 +2,15 @@ import { apiClient } from './apiClient.js';
 
 const DOWNLOAD_TIMEOUT_MS = 60_000;
 
+
+const resolveTimeZone = () => {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  } catch {
+    return undefined;
+  }
+};
+
 const readBlobAsJson = async (blob) => {
   if (!blob || typeof blob.text !== 'function') return null;
   try {
@@ -17,6 +26,8 @@ export const clinicalReportApi = {
     const params = {};
     if (window.from) params.from = window.from;
     if (window.to) params.to = window.to;
+    const tz = resolveTimeZone();
+    if (tz) params.tz = tz;
 
     try {
       const response = await apiClient.get('/reports/clinical', {

@@ -19,18 +19,19 @@ const escapeHtml = (value) =>
     }
   });
 
-const formatDateTime = (value) => {
+
+const formatDateTime = (value, timeZone) => {
   if (!value) return '—';
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return date.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short', timeZone });
 };
 
-const formatDate = (value) => {
+const formatDate = (value, timeZone) => {
   if (!value) return '—';
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return '—';
-  return date.toLocaleDateString(undefined, { dateStyle: 'long' });
+  return date.toLocaleDateString(undefined, { dateStyle: 'long', timeZone });
 };
 
 const renderChipList = (items, emptyLabel) => {
@@ -38,12 +39,12 @@ const renderChipList = (items, emptyLabel) => {
   return items.map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join('');
 };
 
-const renderTimelineRow = (entry) => {
+const renderTimelineRow = (entry, timeZone) => {
   const symptoms = (entry.symptoms ?? []).map((symptom) => symptom.name);
   const triggers = (entry.triggers ?? []).map((trigger) => trigger.name);
   return `
     <tr>
-      <td class="col-date">${escapeHtml(formatDateTime(entry.loggedAt))}</td>
+      <td class="col-date">${escapeHtml(formatDateTime(entry.loggedAt, timeZone))}</td>
       <td class="col-severity"><span class="severity-pill severity-pill--${entry.severity >= 7 ? 'high' : entry.severity >= 4 ? 'mid' : 'low'}">${escapeHtml(entry.severity ?? '—')}</span></td>
       <td class="col-mood">${escapeHtml(entry.mood ?? '—')}</td>
       <td class="col-symptoms">${renderChipList(symptoms, 'none')}</td>
@@ -53,7 +54,7 @@ const renderTimelineRow = (entry) => {
   `;
 };
 
-const renderNarrativeBlock = (label, summary) => {
+const renderNarrativeBlock = (label, summary, timeZone) => {
   if (!summary) {
     return `
       <div class="narrative-block narrative-block--empty">
@@ -71,13 +72,13 @@ const renderNarrativeBlock = (label, summary) => {
   return `
     <div class="narrative-block">
       <h4>${escapeHtml(label)}</h4>
-      <p class="narrative-block__meta">Generated ${escapeHtml(formatDateTime(summary.generatedAt))}</p>
+      <p class="narrative-block__meta">Generated ${escapeHtml(formatDateTime(summary.generatedAt, timeZone))}</p>
       ${paragraphs.map((paragraph) => `<p class="narrative-block__paragraph">${escapeHtml(paragraph)}</p>`).join('') || '<p class="empty">Empty narrative.</p>'}
     </div>
   `;
 };
 
-const renderDoctorSummary = (summary) => {
+const renderDoctorSummary = (summary, timeZone) => {
   if (!summary || !summary.content || typeof summary.content !== 'object') {
     return `
       <div class="narrative-block narrative-block--empty">
@@ -92,7 +93,7 @@ const renderDoctorSummary = (summary) => {
   return `
     <div class="doctor-summary">
       <h4>Doctor visit summary</h4>
-      <p class="narrative-block__meta">Generated ${escapeHtml(formatDateTime(summary.generatedAt))}</p>
+      <p class="narrative-block__meta">Generated ${escapeHtml(formatDateTime(summary.generatedAt, timeZone))}</p>
 
       <h5>Key symptoms</h5>
       ${
@@ -208,6 +209,7 @@ export const renderClinicalReportHtml = ({
   severityTrend,
   narratives,
   generatedAt,
+  timeZone,
 }) => {
   const profile = patient.profile ?? {};
   const fullName = profile.name ?? '—';
@@ -228,8 +230,8 @@ export const renderClinicalReportHtml = ({
       <p class="cover__eyebrow">${escapeHtml(APP_NAME)} · ${escapeHtml(APP_TAGLINE)}</p>
       <h1 class="cover__title">Clinical Report</h1>
       <p class="cover__subtitle">
-        ${escapeHtml(fullName)} · Generated ${escapeHtml(formatDateTime(generatedAt))}<br/>
-        Window: ${escapeHtml(formatDate(window.from))} → ${escapeHtml(formatDate(window.to))}
+        ${escapeHtml(fullName)} · Generated ${escapeHtml(formatDateTime(generatedAt, timeZone))}<br/>
+        Window: ${escapeHtml(formatDate(window.from, timeZone))} → ${escapeHtml(formatDate(window.to, timeZone))}
       </p>
     </header>
 
@@ -272,7 +274,7 @@ export const renderClinicalReportHtml = ({
                   <th class="col-notes">Notes</th>
                 </tr>
               </thead>
-              <tbody>${entries.map(renderTimelineRow).join('')}</tbody>
+              <tbody>${entries.map((entry) => renderTimelineRow(entry, timeZone)).join('')}</tbody>
             </table>`
       }
     </section>
@@ -306,10 +308,10 @@ export const renderClinicalReportHtml = ({
 
     <section class="section">
       <h2 class="section__title">5. AI summary</h2>
-      ${renderNarrativeBlock('Symptom narrative', narratives.symptom)}
-      ${renderNarrativeBlock('Pattern explanation', narratives.pattern)}
-      ${renderNarrativeBlock('Timeline narrative', narratives.timeline)}
-      ${renderDoctorSummary(narratives.doctor)}
+      ${renderNarrativeBlock('Symptom narrative', narratives.symptom, timeZone)}
+      ${renderNarrativeBlock('Pattern explanation', narratives.pattern, timeZone)}
+      ${renderNarrativeBlock('Timeline narrative', narratives.timeline, timeZone)}
+      ${renderDoctorSummary(narratives.doctor, timeZone)}
     </section>
 
     <p class="disclaimer">

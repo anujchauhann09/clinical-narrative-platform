@@ -12,6 +12,17 @@ import { insightsService } from './insights.service.js';
 const DEFAULT_WINDOW_DAYS = 60;
 const MAX_TIMELINE_ROWS = 200;
 
+
+const resolveTimeZone = (tz) => {
+  if (!tz) return undefined;
+  try {
+    new Intl.DateTimeFormat('en-US', { timeZone: tz });
+    return tz;
+  } catch {
+    return undefined;
+  }
+};
+
 const round = (value, places = 1) =>
   value === null || value === undefined || Number.isNaN(value) ? null : Number(value.toFixed(places));
 
@@ -83,6 +94,7 @@ export const clinicalReportService = {
         doctor: findLatestByType(summaries, SUMMARY_TYPES.DOCTOR_SUMMARY),
       },
       generatedAt: new Date(),
+      timeZone: resolveTimeZone(query.tz),
     });
 
     const pdfBuffer = await pdfClient.renderHtmlToPdf(html);

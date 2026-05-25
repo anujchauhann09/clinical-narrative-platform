@@ -3,7 +3,14 @@ import { z } from 'zod';
 const severitySchema = z.coerce.number().int().min(1).max(10);
 const moodSchema = z.string().trim().max(80).optional().nullable();
 const notesSchema = z.string().trim().max(5000).optional().nullable();
-const loggedAtSchema = z.string().datetime({ offset: true });
+
+const FUTURE_TOLERANCE_MS = 60_000;
+const isoDateTimeSchema = z.string().datetime({ offset: true });
+
+const loggedAtSchema = isoDateTimeSchema.refine(
+  (value) => new Date(value).getTime() <= Date.now() + FUTURE_TOLERANCE_MS,
+  { message: 'loggedAt cannot be in the future' },
+);
 const uuidArraySchema = z.array(z.string().uuid()).max(50);
 
 const uuidParamsSchema = z.object({
@@ -56,8 +63,8 @@ export const listSymptomEntriesSchema = z.object({
       pageSize: z.coerce.number().int().positive().max(100).default(20),
       sortBy: z.enum(['loggedAt', 'severity', 'createdAt']).default('loggedAt'),
       sortOrder: z.enum(['asc', 'desc']).default('desc'),
-      from: loggedAtSchema.optional(),
-      to: loggedAtSchema.optional(),
+      from: isoDateTimeSchema.optional(),
+      to: isoDateTimeSchema.optional(),
       severityMin: severitySchema.optional(),
       severityMax: severitySchema.optional(),
       mood: z.string().trim().min(1).max(80).optional(),

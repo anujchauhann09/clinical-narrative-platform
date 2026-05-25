@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 
 import { userApi } from '../../api/userApi.js';
 import { useToast } from '../../context/ToastContext.jsx';
+import { dateService } from '../../services/dateService.js';
 import { useAuthStore } from '../../store/authStore.js';
 import { updateProfileSchema } from '../../validators/user.validator.js';
 import { Button } from '../common/Button.jsx';
@@ -28,8 +29,7 @@ const buildDefaults = (profile) => ({
   phone: profile?.phone ?? '',
 });
 
-// Only PATCH the fields that actually changed. Treat '' as "clear this field"
-// (sent as null) so users can intentionally remove an optional value.
+
 const buildDiff = (values, original) => {
   const diff = {};
   for (const key of Object.keys(values)) {
@@ -106,6 +106,7 @@ export const ProfileEditForm = ({ profile, onDone }) => {
             <Input
               error={errors.dateOfBirth?.message}
               label="Date of birth"
+              max={dateService.todayYyyyMmDd()}
               type="date"
               {...register('dateOfBirth')}
             />
