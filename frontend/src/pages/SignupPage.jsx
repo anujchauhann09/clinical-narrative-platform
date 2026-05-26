@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useNavigate } from 'react-router-dom';
 
 import { authApi } from '../api/authApi.js';
+import { GoogleAuthButton } from '../components/auth/GoogleAuthButton.jsx';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
 import { ROUTES } from '../constants/app.js';
@@ -79,6 +80,14 @@ export const SignupPage = () => {
       <Button icon={UserPlus} isLoading={isSubmitting} size="lg" type="submit">
         Create account
       </Button>
+
+      <div className="flex items-center gap-3" role="separator">
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-2xs font-medium uppercase tracking-wider text-muted">or</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <GoogleAuthButton label="Sign up with Google" />
 
       <p className="text-center text-sm text-muted">
         Already have an account?{' '}

@@ -12,6 +12,10 @@ const envSchema = z.object({
   JWT_ACCESS_EXPIRES_IN: z.string().default('15m'),
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
   CORS_ORIGINS: z.string().min(1).default('http://localhost:5173,http://127.0.0.1:5173'),
+  FRONTEND_URL: z.string().url().optional(),
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  GOOGLE_CALLBACK_URL: z.string().url().optional(),
   GEMINI_API_KEY: z.string().min(1),
   GEMINI_API_MODEL: z.string().min(1).default('gemini-2.5-flash'),
   GEMINI_COPILOT_API_KEY: z.string().min(1).optional(),
@@ -41,3 +45,6 @@ if (!parsedEnv.success) {
 }
 
 export const env = parsedEnv.data;
+
+export const frontendUrl =
+  env.FRONTEND_URL ?? env.CORS_ORIGINS.split(',')[0].trim();

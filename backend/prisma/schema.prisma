@@ -17,7 +17,8 @@ model User {
   id                  BigInt    @id @default(autoincrement())
   publicId            String    @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
   email               String    @unique @db.VarChar(320)
-  passwordHash        String    @map("password_hash") @db.Text
+  // Nullable: accounts created via OAuth (e.g. Google) have no local password.
+  passwordHash        String?   @map("password_hash") @db.Text
   roleName            RoleName  @default(PATIENT) @map("role_name")
   failedLoginAttempts Int       @default(0) @map("failed_login_attempts")
   lockedUntil         DateTime? @map("locked_until") @db.Timestamptz(6)
@@ -30,11 +31,30 @@ model User {
   aiSummaries      AiSummary[]
   refreshTokens    RefreshToken[]
   copilotDocuments CopilotDocument[]
+  oauthAccounts    OAuthAccount[]
   role             Role              @relation(fields: [roleName], references: [name], onDelete: Restrict)
 
   @@index([roleName], map: "idx_users_role_name")
   @@index([createdAt], map: "idx_users_created_at")
   @@map("users")
+}
+
+model OAuthAccount {
+  id             BigInt   @id @default(autoincrement())
+  publicId       String   @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  userId         BigInt   @map("user_id")
+  provider       String   @db.VarChar(40)
+  providerUserId String   @map("provider_user_id") @db.VarChar(255)
+  email          String?  @db.VarChar(320)
+  avatarUrl      String?  @map("avatar_url") @db.Text
+  createdAt      DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId], map: "uq_oauth_accounts_provider_user")
+  @@index([userId], map: "idx_oauth_accounts_user_id")
+  @@map("oauth_accounts")
 }
 
 model Role {

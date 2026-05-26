@@ -127,8 +127,20 @@ Open `.env` and fill in:
   ```
 - `GEMINI_API_KEY` — from [Google AI Studio](https://aistudio.google.com/)
 - `PINECONE_API_KEY` and `PINECONE_INDEX` *(optional)* — leave blank to disable copilot document upload
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_CALLBACK_URL` *(optional)* — enable "Continue with Google". Leave blank to hide nothing on the UI but reject the flow with a clear error. See [Google sign-in](#google-sign-in-oauth) below.
+- `FRONTEND_URL` *(optional)* — absolute SPA URL the OAuth callback redirects back to. Defaults to the first `CORS_ORIGINS` entry.
 
 The frontend reads `VITE_API_BASE_URL` (defaults to `/api/v1`). For local dev with Vite's proxy this is fine; for split deploys see the Deployment section.
+
+#### Google sign-in (OAuth)
+
+1. In [Google Cloud Console → Credentials](https://console.cloud.google.com/apis/credentials), create an **OAuth 2.0 Client ID** (type: Web application).
+2. Under **Authorized redirect URIs**, add the callback served at the **API root** (not under `/api/v1`):
+   - Local: `http://localhost:5000/oauth/google/callback`
+   - Production: `https://your-api-domain/oauth/google/callback`
+3. Copy the client ID/secret into `.env` and set `GOOGLE_CALLBACK_URL` to the matching URI above.
+
+The flow: SPA → `GET {api-origin}/oauth/google` → Google consent → `GET /oauth/google/callback` (verifies a `state` nonce, mints the same HttpOnly session cookies as password login) → redirects to `FRONTEND_URL/auth/oauth/callback`. New Google users get a `PATIENT` account; an existing email is linked to the Google identity (Google must report the email as verified).
 
 ### 3. Database migration + seed
 
@@ -164,6 +176,8 @@ The app deploys as two independent services: a Node API and a static SPA. Tested
    - `NODE_ENV=production` — **must be set** (controls cookie `Secure`/`SameSite`)
    - `CORS_ORIGINS=https://your-frontend-domain` — exact origin, no trailing slash
    - `DATABASE_URL` — managed Postgres URL
+   - `FRONTEND_URL=https://your-frontend-domain` — where the OAuth callback returns the browser
+   - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_CALLBACK_URL` *(if using Google sign-in)* — the callback must be registered in the Google Console and point at `https://your-api-domain/oauth/google/callback`
 4. **Do not set** `CHROME_EXECUTABLE_PATH` — Puppeteer uses its bundled Chromium.
 
 ### Frontend (static host)

@@ -12,6 +12,7 @@ import { errorHandler } from './middlewares/errorHandler.middleware.js';
 import { notFoundHandler } from './middlewares/notFound.middleware.js';
 import { apiRateLimiter } from './middlewares/rateLimiter.middleware.js';
 import { sanitizeRequest } from './middlewares/sanitize.middleware.js';
+import oauthRoutes from './routes/oauth.routes.js';
 import routes from './routes/index.js';
 import { logger } from './utils/logger.js';
 
@@ -40,6 +41,7 @@ export const createApp = () => {
   app.use(sanitizeRequest);
   app.use(compression());
 
+  app.use('/oauth', oauthRoutes);
   app.use(env.API_PREFIX, csrfProtection, routes);
   app.use(notFoundHandler);
   app.use(errorHandler);

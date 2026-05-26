@@ -11,7 +11,7 @@ import { tokenService } from './token.service.js';
 
 
 const LOCKOUT_THRESHOLD = 5;
-const LOCKOUT_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const LOCKOUT_DURATION_MS = 15 * 60 * 1000; 
 
 export const authService = {
   async signup({ email, name, password }) {
@@ -31,6 +31,11 @@ export const authService = {
     const user = await userRepository.findByEmail(email);
 
     if (!user) {
+      await passwordService.comparePassword(password, '$2b$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvali');
+      throw new AuthError('Invalid email or password');
+    }
+
+    if (!user.passwordHash) {
       await passwordService.comparePassword(password, '$2b$10$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvali');
       throw new AuthError('Invalid email or password');
     }

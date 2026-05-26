@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 import { authApi } from '../api/authApi.js';
+import { GoogleAuthButton } from '../components/auth/GoogleAuthButton.jsx';
 import { Button } from '../components/common/Button.jsx';
 import { Input } from '../components/common/Input.jsx';
 import { ROUTES } from '../constants/app.js';
@@ -55,6 +56,16 @@ export const LoginPage = () => {
         </div>
       ) : null}
 
+      {location.state?.error ? (
+        <div
+          aria-live="polite"
+          className="rounded-xl border border-danger/30 bg-danger/10 px-3 py-2 text-sm font-medium text-danger"
+          role="alert"
+        >
+          {location.state.error}
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-4">
         <Input
           autoComplete="email"
@@ -83,6 +94,14 @@ export const LoginPage = () => {
       <Button icon={LogIn} isLoading={isSubmitting} size="lg" type="submit">
         Sign in
       </Button>
+
+      <div className="flex items-center gap-3" role="separator">
+        <span className="h-px flex-1 bg-border" />
+        <span className="text-2xs font-medium uppercase tracking-wider text-muted">or</span>
+        <span className="h-px flex-1 bg-border" />
+      </div>
+
+      <GoogleAuthButton label="Continue with Google" />
 
       <p className="text-center text-sm text-muted">
         New here?{' '}

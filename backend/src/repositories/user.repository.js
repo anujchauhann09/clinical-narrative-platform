@@ -20,8 +20,6 @@ export const userRepository = {
     });
   },
 
-  // Minimal profile lookup for AI-context building — avoids pulling the
-  // password hash / email when only display fields are needed.
   findProfileSummaryByUserPublicId(publicId) {
     return prisma.userProfile.findFirst({
       where: { user: { publicId } },
@@ -34,6 +32,20 @@ export const userRepository = {
       data: {
         email,
         passwordHash,
+        profile: {
+          create: {
+            name,
+          },
+        },
+      },
+      include: defaultUserInclude,
+    });
+  },
+
+  createOAuthUser({ email, name }) {
+    return prisma.user.create({
+      data: {
+        email,
         profile: {
           create: {
             name,
@@ -60,8 +72,6 @@ export const userRepository = {
     return prisma.user.delete({ where: { publicId } });
   },
 
-  // Lockout primitives. Kept here so the auth service stays declarative and
-  // the locking policy is hot-swappable in one file.
   incrementFailedAttempts(userId) {
     return prisma.user.update({
       where: { id: userId },

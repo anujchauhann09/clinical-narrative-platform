@@ -10,11 +10,6 @@ import { ROUTES } from '../constants/app.js';
 
 const errorElement = <RouteErrorElement />;
 
-// Pages are loaded on demand via react-router's `lazy` so a first-time visitor
-// to /dashboard doesn't download the code for Timeline, Insights, Narratives,
-// Reports, Profile, and Settings up front. Vite turns each `import('…')` into
-// its own JS chunk automatically. Layouts stay eager because every page needs
-// them and they're tiny.
 const lazyRoute = (path, importer, exportName) => ({
   path,
   lazy: async () => {
@@ -46,6 +41,7 @@ export const router = createBrowserRouter([
       },
     ],
   },
+  lazyRoute(ROUTES.OAUTH_CALLBACK, () => import('../pages/OAuthCallbackPage.jsx'), 'OAuthCallbackPage'),
   {
     element: <ProtectedRoute />,
     children: [

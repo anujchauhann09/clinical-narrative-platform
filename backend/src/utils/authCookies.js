@@ -28,6 +28,14 @@ export const setCsrfTokenCookie = (_req, res, token, maxAge) => {
   res.cookie(COOKIE_NAMES.CSRF_TOKEN, token, { ...csrfCookieOptions, maxAge });
 };
 
+export const setOAuthStateCookie = (_req, res, state, maxAge) => {
+  res.cookie(COOKIE_NAMES.OAUTH_STATE, state, { ...tokenCookieOptions, maxAge });
+};
+
+export const clearOAuthStateCookie = (_req, res) => {
+  res.clearCookie(COOKIE_NAMES.OAUTH_STATE, tokenCookieOptions);
+};
+
 export const clearAccessTokenCookie = (_req, res) => {
   res.clearCookie(COOKIE_NAMES.ACCESS_TOKEN, tokenCookieOptions);
 };
