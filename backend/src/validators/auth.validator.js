@@ -28,3 +28,9 @@ export const loginSchema = z.object({
     password: loginPasswordSchema,
   }),
 });
+
+export const oauthExchangeSchema = z.object({
+  body: z.object({
+    code: z.string().trim().min(1).max(256),
+  }),
+});

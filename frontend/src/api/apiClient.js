@@ -20,7 +20,13 @@ export const clearCsrfToken = () => {
   csrfTokenInMemory = null;
 };
 
-const REFRESH_SKIP_PREFIXES = ['/auth/login', '/auth/signup', '/auth/refresh', '/auth/logout'];
+const REFRESH_SKIP_PREFIXES = [
+  '/auth/login',
+  '/auth/signup',
+  '/auth/oauth/exchange',
+  '/auth/refresh',
+  '/auth/logout',
+];
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -38,7 +44,6 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
-// Single in-flight refresh. Concurrent 401s share the same network call.
 let refreshPromise = null;
 
 const performRefresh = () => {

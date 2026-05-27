@@ -8,9 +8,6 @@ import { useAuthStore } from '../store/authStore.js';
 
 const GENERIC_ERROR = 'We could not complete sign-in. Please try again.';
 
-// Landing route after an OAuth round-trip. The backend has already set the
-// session cookies (or appended ?error=...); this page turns that into either a
-// populated store + dashboard redirect, or a bounce back to login with a reason.
 export const OAuthCallbackPage = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -27,11 +24,15 @@ export const OAuthCallbackPage = () => {
       return;
     }
 
+    const code = searchParams.get('code');
+    if (!code) {
+      navigate(ROUTES.LOGIN, { replace: true, state: { error: GENERIC_ERROR } });
+      return;
+    }
+
     const finalize = async () => {
       try {
-        // Confirms the session cookie the callback set and captures the CSRF
-        // token (returned in the body) for subsequent mutating requests.
-        const response = await authApi.getMe();
+        const response = await authApi.oauthExchange(code);
         if (response?.success && response.data?.user) {
           setSession({ user: response.data.user });
           navigate(ROUTES.DASHBOARD, { replace: true });

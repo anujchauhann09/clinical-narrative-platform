@@ -25,6 +25,10 @@ export const authApi = {
     return apiClient.post('/auth/logout');
   },
 
+  oauthExchange(code) {
+    return apiClient.post('/auth/oauth/exchange', { code });
+  },
+
   getMe() {
     return apiClient.get('/auth/me');
   },

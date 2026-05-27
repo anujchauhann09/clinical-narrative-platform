@@ -1,28 +1,31 @@
 import { frontendUrl } from '../config/env.js';
 import { COOKIE_NAMES } from '../constants/cookies.js';
+import { HTTP_STATUS } from '../constants/httpStatus.js';
 import { OAUTH_MESSAGES } from '../constants/oauth.js';
-import { ApiError } from '../errors/index.js';
+import { ApiError, AuthError } from '../errors/index.js';
 import { auditService, AUDIT_ACTIONS } from '../services/audit.service.js';
 import { oauthService } from '../services/oauth.service.js';
+import { oauthExchangeStore } from '../services/oauthExchange.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
+import { sendAuthSession } from '../utils/authResponse.js';
 import {
   clearOAuthStateCookie,
-  setAccessTokenCookie,
-  setCsrfTokenCookie,
   setOAuthStateCookie,
-  setRefreshTokenCookie,
 } from '../utils/authCookies.js';
 import { csrfTokensMatch, generateCsrfToken } from '../utils/csrf.js';
 import { logger } from '../utils/logger.js';
 
 
 const FRONTEND_RESULT_PATH = '/auth/oauth/callback';
-const OAUTH_STATE_TTL_MS = 10 * 60 * 1000; 
+const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 
-const redirectToFrontend = (res, { error } = {}) => {
+const redirectToFrontend = (res, { error, code } = {}) => {
   const base = `${frontendUrl}${FRONTEND_RESULT_PATH}`;
-  const target = error ? `${base}?error=${encodeURIComponent(error)}` : base;
-  return res.redirect(target);
+  const params = new URLSearchParams();
+  if (error) params.set('error', error);
+  if (code) params.set('code', code);
+  const query = params.toString();
+  return res.redirect(query ? `${base}?${query}` : base);
 };
 
 const toUserSafeMessage = (err) =>
@@ -63,9 +66,7 @@ export const handleCallback = asyncHandler(async (req, res) => {
 
     const session = await oauthService.handleCallback(provider, code);
 
-    setRefreshTokenCookie(req, res, session.refreshToken, session.refreshTokenTtlMs);
-    setAccessTokenCookie(req, res, session.accessToken, session.accessTokenTtlMs);
-    setCsrfTokenCookie(req, res, generateCsrfToken(), session.refreshTokenTtlMs);
+    const exchangeCode = oauthExchangeStore.issue(session);
 
     auditService.emit({
       userPublicId: session.user.publicId,
@@ -76,9 +77,20 @@ export const handleCallback = asyncHandler(async (req, res) => {
       metadata: { method: 'oauth', provider },
     });
 
-    return redirectToFrontend(res);
+    return redirectToFrontend(res, { code: exchangeCode });
   } catch (err) {
     logger.warn({ err, provider }, 'OAuth callback failed');
     return redirectToFrontend(res, { error: toUserSafeMessage(err) });
   }
+});
+
+
+export const exchangeOAuthCode = asyncHandler(async (req, res) => {
+  const session = oauthExchangeStore.consume(req.validated.body.code);
+
+  if (!session) {
+    throw new AuthError(OAUTH_MESSAGES.EXCHANGE_FAILED);
+  }
+
+  sendAuthSession(req, res, HTTP_STATUS.OK, session, 'Signed in with Google');
 });

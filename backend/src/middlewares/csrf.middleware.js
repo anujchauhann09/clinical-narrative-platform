@@ -9,6 +9,7 @@ const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 const EXEMPT_PATHS = new Set([
   '/auth/signup',
   '/auth/login',
+  '/auth/oauth/exchange',
   '/auth/refresh',
   '/auth/logout',
 ]);

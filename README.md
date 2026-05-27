@@ -140,7 +140,7 @@ The frontend reads `VITE_API_BASE_URL` (defaults to `/api/v1`). For local dev wi
    - Production: `https://your-api-domain/oauth/google/callback`
 3. Copy the client ID/secret into `.env` and set `GOOGLE_CALLBACK_URL` to the matching URI above.
 
-The flow: SPA → `GET {api-origin}/oauth/google` → Google consent → `GET /oauth/google/callback` (verifies a `state` nonce, mints the same HttpOnly session cookies as password login) → redirects to `FRONTEND_URL/auth/oauth/callback`. New Google users get a `PATIENT` account; an existing email is linked to the Google identity (Google must report the email as verified).
+The flow: SPA → `GET {api-origin}/oauth/google` → Google consent → `GET /oauth/google/callback` (verifies a `state` nonce, mints a session, and redirects to `FRONTEND_URL/auth/oauth/callback?code=<one-time>`) → SPA `POST /auth/oauth/exchange` swaps the single-use code for the same HttpOnly session cookies password login sets. The cookies are deliberately set on that final XHR rather than on the callback redirect: with a cross-site SPA/API split, browsers that partition third-party storage (Brave by default, Chrome's third-party-cookie phase-out) would otherwise file a redirect-set cookie under the API's own partition, where the SPA's cross-site requests can't read it. New Google users get a `PATIENT` account; an existing email is linked to the Google identity (Google must report the email as verified).
 
 ### 3. Database migration + seed
 
