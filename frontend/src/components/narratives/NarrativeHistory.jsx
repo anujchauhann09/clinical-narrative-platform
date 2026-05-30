@@ -36,10 +36,7 @@ export const NarrativeHistory = ({
   selectedSummary,
   onSelect,
 }) => {
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const olderVersions = selectedSummary
-    ? bucket.filter((summary) => summary.publicId !== selectedSummary.publicId)
-    : bucket;
+  const [historyOpen, setHistoryOpen] = useState(true);
 
   return (
     <aside className="flex flex-col gap-4">
@@ -68,7 +65,7 @@ export const NarrativeHistory = ({
               {bucket.length}
             </Badge>
           </div>
-          {olderVersions.length > 0 ? (
+          {bucket.length > 0 ? (
             <button
               aria-expanded={historyOpen}
               className="inline-flex items-center gap-1 text-xs font-medium text-primary hover:text-primary-strong lg:hidden"

@@ -6,6 +6,7 @@ import copilotRoutes from './copilot.routes.js';
 import healthRoutes from './health.routes.js';
 import insightsRoutes from './insights.routes.js';
 import narrativeRoutes from './narrative.routes.js';
+import patternInsightsRoutes from './patternInsights.routes.js';
 import symptomEntryRoutes from './symptomEntry.routes.js';
 import userRoutes from './user.routes.js';
 
@@ -16,6 +17,7 @@ router.use(healthRoutes);
 router.use(userRoutes);
 router.use(symptomEntryRoutes);
 router.use(insightsRoutes);
+router.use(patternInsightsRoutes);
 router.use(narrativeRoutes);
 router.use(clinicalReportRoutes);
 router.use(copilotRoutes);

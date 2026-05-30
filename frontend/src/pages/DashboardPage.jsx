@@ -20,6 +20,7 @@ import { Card } from '../components/common/Card.jsx';
 import { EmptyState } from '../components/common/EmptyState.jsx';
 import { Loader } from '../components/common/Loader.jsx';
 import { Modal } from '../components/common/Modal.jsx';
+import { PatternInsightsSection } from '../components/dashboard/PatternInsightsSection.jsx';
 import { Container, PageHeader } from '../components/layout/PageHeader.jsx';
 import { SymptomEntryForm } from '../components/forms/SymptomEntryForm.jsx';
 import { TimelineCard } from '../components/timeline/TimelineCard.jsx';
@@ -230,6 +231,8 @@ export const DashboardPage = () => {
             </Card.Pad>
           </Card>
         </div>
+
+        <PatternInsightsSection />
 
         <section>
           <div className="mb-4 flex items-end justify-between gap-3">

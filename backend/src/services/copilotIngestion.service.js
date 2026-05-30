@@ -8,6 +8,10 @@ import {
 } from '../repositories/copilotDocument.repository.js';
 import { chunkArray } from '../utils/arrayChunk.js';
 import { logger } from '../utils/logger.js';
+import {
+  classifyMedicalContent,
+  MEDICAL_CONTENT_MESSAGE,
+} from '../utils/medicalContentClassifier.js';
 import { sanitizeFilename, verifyDocumentFileType } from '../utils/uploadGuards.js';
 import { documentExtractionService } from './documentExtraction.service.js';
 import { textChunkerService } from './textChunker.service.js';
@@ -30,6 +34,22 @@ const ingestAsync = async ({ document, userPublicId, buffer }) => {
       mimeType: document.mimeType,
       filename: document.filename,
     });
+
+    const verdict = classifyMedicalContent(text);
+    if (!verdict.isMedical) {
+      logger.info(
+        {
+          documentPublicId: document.publicId,
+          score: verdict.score,
+          density: verdict.density,
+          redFlags: verdict.redFlags,
+          reason: verdict.reason,
+        },
+        'Copilot ingestion rejected non-medical document',
+      );
+      throw new ApiError(MEDICAL_CONTENT_MESSAGE, HTTP_STATUS.UNPROCESSABLE_ENTITY);
+    }
+
     const chunks = textChunkerService.chunk(text);
     if (!chunks.length) {
       throw new ApiError('No usable text after chunking', HTTP_STATUS.UNPROCESSABLE_ENTITY);
@@ -83,7 +103,6 @@ export const copilotIngestionService = {
       );
     }
 
-    // Authoritative content-based MIME check (client headers are untrusted).
     const safeFilename = sanitizeFilename(file.originalname);
     const verifiedMime = verifyDocumentFileType({
       buffer: file.buffer,
@@ -108,7 +127,6 @@ export const copilotIngestionService = {
       throw new ApiError('User not found', HTTP_STATUS.NOT_FOUND);
     }
 
-    // Fire-and-forget ingestion so the API returns fast; status reflects progress.
     ingestAsync({ document, userPublicId, buffer: file.buffer });
 
     return { ...document, status: DOCUMENT_STATUS.PROCESSING };

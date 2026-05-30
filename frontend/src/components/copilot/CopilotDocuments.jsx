@@ -50,48 +50,63 @@ export const CopilotDocuments = ({
         const Icon = STATUS_ICON[document.status] ?? FileText;
         const isSelected = selectedDocumentId === document.publicId;
         const isReady = document.status === 'ready';
+        const isFailed = document.status === 'failed';
         return (
           <li
             className={cn(
-              'flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs',
+              'flex flex-col gap-1 rounded-lg border px-2.5 py-1.5 text-xs',
               isSelected
                 ? 'border-primary/50 bg-primary/5'
-                : 'border-border bg-surface',
+                : isFailed
+                  ? 'border-danger/40 bg-danger/5'
+                  : 'border-border bg-surface',
             )}
             key={document.publicId}
           >
-            <FileText aria-hidden="true" className="text-muted" size={14} />
-            <button
-              className="min-w-0 flex-1 truncate text-left text-text hover:text-primary disabled:cursor-not-allowed disabled:hover:text-text"
-              disabled={!isReady}
-              onClick={() => onSelect(isSelected ? null : document.publicId)}
-              title={
-                isReady
-                  ? isSelected
-                    ? 'Clear focus on this document'
-                    : 'Ask the copilot to focus on this document'
-                  : 'Available once indexing finishes'
-              }
-              type="button"
-            >
-              {document.filename}
-            </button>
-            <span className={cn('flex items-center gap-1', STATUS_TONE[document.status])} title={document.errorMessage ?? document.status}>
-              <Icon
-                aria-hidden="true"
-                className={document.status === 'processing' ? 'animate-spin' : ''}
-                size={12}
+            <div className="flex items-center gap-2">
+              <FileText aria-hidden="true" className="text-muted" size={14} />
+              <button
+                className="min-w-0 flex-1 truncate text-left text-text hover:text-primary disabled:cursor-not-allowed disabled:hover:text-text"
+                disabled={!isReady}
+                onClick={() => onSelect(isSelected ? null : document.publicId)}
+                title={
+                  isReady
+                    ? isSelected
+                      ? 'Clear focus on this document'
+                      : 'Ask the copilot to focus on this document'
+                    : isFailed
+                      ? document.errorMessage ?? 'Document could not be indexed'
+                      : 'Available once indexing finishes'
+                }
+                type="button"
+              >
+                {document.filename}
+              </button>
+              <span
+                className={cn('flex items-center gap-1', STATUS_TONE[document.status])}
+                title={document.errorMessage ?? document.status}
+              >
+                <Icon
+                  aria-hidden="true"
+                  className={document.status === 'processing' ? 'animate-spin' : ''}
+                  size={12}
+                />
+                <span className="hidden sm:inline">{formatBytes(document.byteSize)}</span>
+              </span>
+              <Button
+                aria-label={`Remove ${document.filename}`}
+                icon={Trash2}
+                onClick={() => onDelete(document.publicId)}
+                size="icon"
+                type="button"
+                variant="ghost"
               />
-              <span className="hidden sm:inline">{formatBytes(document.byteSize)}</span>
-            </span>
-            <Button
-              aria-label={`Remove ${document.filename}`}
-              icon={Trash2}
-              onClick={() => onDelete(document.publicId)}
-              size="icon"
-              type="button"
-              variant="ghost"
-            />
+            </div>
+            {isFailed && document.errorMessage ? (
+              <p className="pl-6 text-[11px] leading-snug text-danger">
+                {document.errorMessage}
+              </p>
+            ) : null}
           </li>
         );
       })}

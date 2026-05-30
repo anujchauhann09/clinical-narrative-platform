@@ -31,6 +31,7 @@ model User {
   aiSummaries      AiSummary[]
   refreshTokens    RefreshToken[]
   copilotDocuments CopilotDocument[]
+  patternInsights  PatternInsight[]
   oauthAccounts    OAuthAccount[]
   role             Role              @relation(fields: [roleName], references: [name], onDelete: Restrict)
 
@@ -221,6 +222,34 @@ model CopilotDocument {
   @@index([status], map: "idx_copilot_documents_status")
   @@index([deletedAt], map: "idx_copilot_documents_deleted_at")
   @@map("copilot_documents")
+}
+
+model PatternInsight {
+  id               BigInt    @id @default(autoincrement())
+  publicId         String    @unique @default(dbgenerated("gen_random_uuid()")) @map("public_id") @db.Uuid
+  userId           BigInt    @map("user_id")
+  patternKey       String    @map("pattern_key") @db.VarChar(80)
+  title            String    @db.VarChar(160)
+  observation      String    @db.Text
+  discussionTopics Json      @map("discussion_topics")
+  severity         String    @default("informational") @db.VarChar(40)
+  confidence       String    @default("low") @db.VarChar(40)
+  evidenceCount    Int       @default(0) @map("evidence_count")
+  windowStart      DateTime  @map("window_start") @db.Timestamptz(6)
+  windowEnd        DateTime  @map("window_end") @db.Timestamptz(6)
+  dismissedAt      DateTime? @map("dismissed_at") @db.Timestamptz(6)
+  feedback         String?   @db.VarChar(40)
+  expiresAt        DateTime? @map("expires_at") @db.Timestamptz(6)
+  generatedAt      DateTime  @default(now()) @map("generated_at") @db.Timestamptz(6)
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, patternKey, windowStart], map: "uq_pattern_insights_user_key_window")
+  @@index([userId, generatedAt(sort: Desc)], map: "idx_pattern_insights_user_generated_at")
+  @@index([dismissedAt], map: "idx_pattern_insights_dismissed_at")
+  @@map("pattern_insights")
 }
 
 model AuditLog {
